@@ -2,6 +2,7 @@
 import { h, ref, computed, onMounted, watch } from 'vue';
 import { provideSidebarContext, useSidebarResize } from './provider';
 import { useAccount } from 'dashboard/composables/useAccount';
+import { useAdmin } from 'dashboard/composables/useAdmin';
 import { useConfig } from 'dashboard/composables/useConfig';
 import { useKbd } from 'dashboard/composables/utils/useKbd';
 import { useMapGetter } from 'dashboard/composables/store';
@@ -46,6 +47,7 @@ const emit = defineEmits([
 
 const { accountScopedRoute, isOnChatwootCloud } = useAccount();
 const { isEnterprise } = useConfig();
+const { isAdmin } = useAdmin();
 const store = useStore();
 
 // Calls run on the enterprise-only API (cloud runs enterprise); hide the entry
@@ -508,88 +510,38 @@ const menuItems = computed(() => {
         },
       ],
     },
-    {
-      name: 'Captain',
-      icon: 'i-woot-captain',
-      label: t('SIDEBAR.CAPTAIN'),
-      activeOn: ['captain_assistants_create_index'],
-      children: [
-        {
-          name: 'Overview',
-          label: t('SIDEBAR.CAPTAIN_OVERVIEW'),
-          activeOn: ['captain_assistants_overview_index'],
-          to: accountScopedRoute('captain_assistants_index', {
-            navigationPath: 'captain_assistants_overview_index',
-          }),
-        },
-        {
-          name: 'FAQs',
-          label: t('SIDEBAR.CAPTAIN_RESPONSES'),
-          activeOn: [
-            'captain_assistants_responses_index',
-            'captain_assistants_faq_suggestions',
-          ],
-          to: accountScopedRoute('captain_assistants_index', {
-            navigationPath: 'captain_assistants_responses_index',
-          }),
-        },
-        {
-          name: 'Documents',
-          label: t('SIDEBAR.CAPTAIN_DOCUMENTS'),
-          activeOn: ['captain_assistants_documents_index'],
-          to: accountScopedRoute('captain_assistants_index', {
-            navigationPath: 'captain_assistants_documents_index',
-          }),
-        },
-        {
-          name: 'Scenarios',
-          label: t('SIDEBAR.CAPTAIN_SCENARIOS'),
-          activeOn: ['captain_assistants_scenarios_index'],
-          to: accountScopedRoute('captain_assistants_index', {
-            navigationPath: 'captain_assistants_scenarios_index',
-          }),
-        },
-        {
-          name: 'Playground',
-          label: t('SIDEBAR.CAPTAIN_PLAYGROUND'),
-          activeOn: ['captain_assistants_playground_index'],
-          to: accountScopedRoute('captain_assistants_index', {
-            navigationPath: 'captain_assistants_playground_index',
-          }),
-        },
-        {
-          name: 'Inboxes',
-          label: t('SIDEBAR.CAPTAIN_INBOXES'),
-          activeOn: ['captain_assistants_inboxes_index'],
-          to: accountScopedRoute('captain_assistants_index', {
-            navigationPath: 'captain_assistants_inboxes_index',
-          }),
-        },
-        {
-          name: 'Tools',
-          label: t('SIDEBAR.CAPTAIN_TOOLS'),
-          activeOn: ['captain_tools_index', 'captain_tools_explore'],
-          to: accountScopedRoute('captain_assistants_index', {
-            navigationPath: 'captain_tools_index',
-          }),
-        },
-        {
-          name: 'Settings',
-          label: t('SIDEBAR.CAPTAIN_SETTINGS'),
-          activeOn: [
-            'captain_assistants_settings_index',
-            'captain_assistants_settings_system_index',
-            'captain_assistants_settings_audience_index',
-            'captain_assistants_settings_schedule_index',
-            'captain_assistants_guidelines_index',
-            'captain_assistants_guardrails_index',
-          ],
-          to: accountScopedRoute('captain_assistants_index', {
-            navigationPath: 'captain_assistants_settings_index',
-          }),
-        },
-      ],
-    },
+    ...(isAdmin.value
+      ? [
+          {
+            name: 'AI Brain',
+            icon: 'i-lucide-brain',
+            label: t('SIDEBAR.AI_BRAIN'),
+            children: [
+              {
+                name: 'AI Brain Overview',
+                label: t('SIDEBAR.AI_BRAIN_OVERVIEW'),
+                to: accountScopedRoute('ai_brain_overview'),
+              },
+              {
+                name: 'AI Brain Rules',
+                label: t('SIDEBAR.AI_BRAIN_RULES'),
+                to: accountScopedRoute('ai_brain_rules'),
+              },
+              {
+                name: 'AI Brain Agents',
+                label: t('SIDEBAR.AI_BRAIN_AGENTS'),
+                activeOn: ['ai_brain_agents_new', 'ai_brain_agents_edit'],
+                to: accountScopedRoute('ai_brain_agents'),
+              },
+              {
+                name: 'AI Brain Services',
+                label: t('SIDEBAR.AI_BRAIN_SERVICES'),
+                to: accountScopedRoute('ai_brain_services'),
+              },
+            ],
+          },
+        ]
+      : []),
     ...(isCallsAvailable.value
       ? [
           {

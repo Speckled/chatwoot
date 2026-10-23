@@ -1,0 +1,12 @@
+{
+  "AI_BRAIN": {
+    "OVERVIEW": "Visão geral", "RULES": "Regras e proibições", "AGENTS": "Gerenciamento de agentes", "SERVICES": "Serviços e contas vinculados",
+    "MASTER_SWITCH": "Ativar IA para esta conta", "ACTIVE": "Ativo", "INACTIVE": "Inativo", "INBOX_ROUTING": "Roteamento das caixas", "INBOX": "Caixa de entrada", "CHANNEL": "Canal", "AGENT": "Agente", "NONE": "Nenhum",
+    "CREATE": "Criar", "EDIT": "Editar", "REMOVE": "Remover", "ADD": "Adicionar", "MANAGE": "Gerenciar", "SAVE": "Salvar", "SAVED": "Salvo", "CANCEL": "Cancelar", "ERROR": "Falha na solicitação à AI Brain. Tente novamente.", "CONFIRM_DELETE": "Excluir este item?", "CONFLICT": "Este agente foi alterado. Recarregue antes de salvar.", "RELOAD": "Recarregar",
+    "BUSINESS_NAME": "Nome da empresa", "TIME_ZONE": "Fuso horário", "ALLOWLIST": "Exigir lista de permissões", "GLOBAL_INSTRUCTIONS": "Instruções globais", "COMPANY_RULES": "Regras da empresa", "PROHIBITED": "Comportamentos proibidos", "WORKING_HOURS": "Horário de funcionamento", "START": "Início", "END": "Fim", "SLOT": "Duração do horário (minutos)", "BLACKOUT_DATES": "Datas indisponíveis (AAAA-MM-DD)",
+    "DAYS": { "0": "Dom", "1": "Seg", "2": "Ter", "3": "Qua", "4": "Qui", "5": "Sex", "6": "Sáb" },
+    "FAQS": "Base de conhecimento / Perguntas frequentes", "CATEGORY": "Categoria", "TITLE": "Título", "CONTENT": "Conteúdo", "TAGS": "Etiquetas (separadas por vírgula)", "ACTIONS": "Ações", "NAME": "Nome", "DESCRIPTION": "Descrição", "MODEL": "ID do modelo", "TOOLS": "Ferramentas habilitadas", "VERSION": "Versão", "CREATE_AGENT": "Criar agente", "EDIT_AGENT": "Editar agente", "PROVIDER": "Provedor", "TEMPERATURE": "Temperatura", "MAX_TOKENS": "Máximo de tokens de saída", "SYSTEM_INSTRUCTIONS": "Instruções do sistema", "TONE": "Tom", "GUARDRAILS": "Regras de proteção", "REVIEW_POLICY": "Política de revisão", "TOOL_PARAMETERS": "Parâmetros das ferramentas", "KEY": "Chave", "VALUE": "Valor",
+    "GOOGLE_CALENDAR": "Google Agenda", "CONNECTED": "Conectado", "DISCONNECTED": "Não conectado", "PRIMARY": "Principal", "AVAILABLE_CALENDARS": "Calendários disponíveis", "ID": "ID do calendário", "ACCESS": "Nível de acesso", "CONNECT": "Conectar", "RECONNECT": "Reconectar", "DISCONNECT": "Desconectar", "CONFIRM_DISCONNECT": "Desconectar o Google Agenda?",
+    "END_SESSION": "Encerrar atendimento humano e retomar o bot", "REVIEW_PROPOSAL": "Revisar resposta proposta", "VALIDATE_SEND": "Validar, enviar e retomar o bot", "REVIEW_REASON": "Motivo da revisão"
+  }
+}

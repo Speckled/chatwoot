@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useStore } from 'vuex';
 import { useElementSize } from '@vueuse/core';
@@ -15,6 +15,8 @@ import { snoozedReopenTime } from 'dashboard/helper/snoozeHelpers';
 import { useInbox } from 'dashboard/composables/useInbox';
 import { useAlert } from 'dashboard/composables';
 import { useI18n } from 'vue-i18n';
+import { useAdmin } from 'dashboard/composables/useAdmin';
+import aiBrainConversations from 'dashboard/api/aiBrain/conversations';
 import { copyTextToClipboard } from 'shared/helpers/clipboard';
 
 const props = defineProps({
@@ -29,6 +31,7 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
+const { isAdmin } = useAdmin();
 const store = useStore();
 const route = useRoute();
 const conversationHeader = ref(null);
@@ -37,6 +40,46 @@ const { isAWebWidgetInbox, isAnEmailChannel } = useInbox();
 
 const currentChat = computed(() => store.getters.getSelectedChat);
 const accountId = computed(() => store.getters.getCurrentAccountId);
+const aiBrain = ref(null);
+const reviewText = ref('');
+const aiBusy = ref(false);
+const loadAiBrain = async () => {
+  aiBrain.value = null;
+  if (!isAdmin.value || !props.chat.id) return;
+  try {
+    aiBrain.value = (await aiBrainConversations.show(props.chat.id)).data;
+    reviewText.value = aiBrain.value.review?.proposedReplyText || '';
+  } catch (error) {
+    aiBrain.value = null;
+  }
+};
+watch(
+  () => [props.chat.id, props.chat.status, accountId.value, isAdmin.value],
+  loadAiBrain,
+  { immediate: true }
+);
+const endHumanSession = async () => {
+  aiBusy.value = true;
+  try {
+    await aiBrainConversations.endSession(props.chat.id);
+    await loadAiBrain();
+  } catch (error) {
+    useAlert(t('AI_BRAIN.ERROR'));
+  } finally {
+    aiBusy.value = false;
+  }
+};
+const validateReply = async () => {
+  aiBusy.value = true;
+  try {
+    await aiBrainConversations.validateReview(props.chat.id, reviewText.value);
+    await loadAiBrain();
+  } catch (error) {
+    useAlert(t('AI_BRAIN.ERROR'));
+  } finally {
+    aiBusy.value = false;
+  }
+};
 
 const chatMetadata = computed(() => props.chat.meta);
 
@@ -115,7 +158,7 @@ const copyConversationId = async () => {
 <template>
   <div
     ref="conversationHeader"
-    class="flex flex-col gap-3 items-center justify-between flex-1 w-full min-w-0 xl:flex-row px-3 pt-3 pb-2 h-24 xl:h-12"
+    class="flex flex-col gap-3 items-center justify-between flex-1 w-full min-w-0 xl:flex-row px-3 pt-3 pb-2 min-h-24"
   >
     <div
       class="flex items-center justify-start w-full xl:w-auto max-w-full min-w-0 xl:flex-1"
@@ -189,6 +232,40 @@ const copyConversationId = async () => {
         class="hidden md:flex"
       />
       <ConversationCallButton :inbox="inbox" :chat="currentChat" />
+      <div v-if="aiBrain?.state === 'human'" class="flex gap-2">
+        <button
+          type="button"
+          :disabled="aiBusy"
+          class="rounded border px-2 py-1"
+          @click="endHumanSession"
+        >
+          {{ t('AI_BRAIN.END_SESSION') }}
+        </button>
+      </div>
+      <div
+        v-if="aiBrain?.state === 'review'"
+        class="flex max-w-md flex-col gap-1"
+      >
+        <label class="text-xs"
+          >{{ t('AI_BRAIN.REVIEW_PROPOSAL') }}
+          <textarea
+            v-model="reviewText"
+            rows="2"
+            class="block w-full rounded border p-1"
+          />
+        </label>
+        <span class="text-xs"
+          >{{ t('AI_BRAIN.REVIEW_REASON') }}: {{ aiBrain.review?.reason }}</span
+        >
+        <button
+          type="button"
+          :disabled="aiBusy || !reviewText.trim()"
+          class="rounded border px-2 py-1"
+          @click="validateReply"
+        >
+          {{ t('AI_BRAIN.VALIDATE_SEND') }}
+        </button>
+      </div>
       <MoreActions :conversation-id="currentChat.id" />
     </div>
   </div>
