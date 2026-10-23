@@ -2,7 +2,11 @@ module InboxBotStatus
   extend ActiveSupport::Concern
 
   def active_bot?
-    external_bot_active?
+    external_bot_active? || ai_brain_active?
+  end
+
+  def ai_brain_active?
+    ai_brain_inbox&.active? || false
   end
 
   def external_bot_active?

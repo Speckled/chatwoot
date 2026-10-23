@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_09_29_100000) do
+ActiveRecord::Schema[7.1].define(version: 2026_10_22_100000) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -285,6 +285,30 @@ ActiveRecord::Schema[7.1].define(version: 2026_09_29_100000) do
     t.index ["created_at"], name: "index_audits_on_created_at"
     t.index ["request_uuid"], name: "index_audits_on_request_uuid"
     t.index ["user_id", "user_type"], name: "user_index"
+  end
+
+  create_table "ai_brain_conversations", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "conversation_id", null: false
+    t.string "state", default: "bot", null: false
+    t.uuid "review_id"
+    t.bigint "source_message_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_ai_brain_conversations_on_account_id"
+    t.index ["conversation_id"], name: "index_ai_brain_conversations_on_conversation_id", unique: true
+  end
+
+  create_table "ai_brain_inboxes", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "inbox_id", null: false
+    t.uuid "agent_definition_id", null: false
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "agent_definition_id"], name: "index_ai_brain_inboxes_on_account_id_and_agent_definition_id"
+    t.index ["account_id"], name: "index_ai_brain_inboxes_on_account_id"
+    t.index ["inbox_id"], name: "index_ai_brain_inboxes_on_inbox_id", unique: true
   end
 
   create_table "automation_rule_pending_executions", force: :cascade do |t|
