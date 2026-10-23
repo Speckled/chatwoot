@@ -30,6 +30,15 @@
 # available at https://guides.rubyonrails.org/i18n.html.
 
 en:
+  ai_brain:
+    review_note: "AI Brain review requested. Proposed reply: %{reply}. Reason: %{reason}"
+    handoff_note: "AI Brain handed this conversation to reception. Reason: %{reason}"
+    errors:
+      unavailable: "AI Brain is unavailable. A receptionist must handle this conversation."
+      unknown_outcome: "AI Brain returned an unknown outcome. A receptionist must handle this conversation."
+      not_human: "This conversation is not under human control."
+      not_review: "This conversation has no pending review."
+      empty_reply: "The validated reply cannot be blank."
   hello: 'Hello world'
   inbox:
     reauthorization:

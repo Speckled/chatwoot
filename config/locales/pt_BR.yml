@@ -17,6 +17,15 @@
 #To learn more, please read the Rails Internationalization guide
 #available at https://guides.rubyonrails.org/i18n.html.
 pt_BR:
+  ai_brain:
+    review_note: "Revisão solicitada pela AI Brain. Resposta proposta: %{reply}. Motivo: %{reason}"
+    handoff_note: "A AI Brain transferiu esta conversa para a recepção. Motivo: %{reason}"
+    errors:
+      unavailable: "A AI Brain está indisponível. A recepção deve atender esta conversa."
+      unknown_outcome: "A AI Brain retornou uma resposta desconhecida. A recepção deve atender esta conversa."
+      not_human: "Esta conversa não está sob controle humano."
+      not_review: "Esta conversa não tem revisão pendente."
+      empty_reply: "A resposta validada não pode estar vazia."
   hello: 'Olá, mundo'
   inbox:
     reauthorization:
