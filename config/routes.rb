@@ -56,6 +56,23 @@ Rails.application.routes.draw do
         end
 
         scope module: :accounts do
+          namespace :ai_brain do
+            resources :agents, only: [:index, :show, :create, :update, :destroy] do
+              get :options, on: :collection
+            end
+            resource :business_rules, only: [:show, :update]
+            resources :faqs, only: [:index, :show, :create, :update, :destroy]
+            resources :services, only: [:index]
+            resource :google_calendar, only: [:destroy], controller: :google_calendar do
+              get :authorization_url
+            end
+            resources :calendars, only: [:index]
+            resources :inboxes, only: [:index, :update, :destroy], param: :inbox_id
+            resources :conversations, only: [:show], param: :conversation_id do
+              post :end_session, on: :member
+              post :validate_review, on: :member
+            end
+          end
           if ChatwootApp.enterprise?
             resources :monitors, only: [:index, :show, :create, :update, :destroy] do
               collection do
