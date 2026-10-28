@@ -1,8 +1,10 @@
 class AiBrain::Client
   class UnavailableError < StandardError; end
 
-  def initialize(account_id)
-    @account_id = account_id
+  attr_reader :app_id
+
+  def initialize(app_id = nil)
+    @app_id = app_id.is_a?(String) && app_id.present? ? app_id : ENV.fetch('AI_BRAIN_APP_ID', 'chatwoot-main')
   end
 
   def get(path, params = {})
@@ -21,14 +23,29 @@ class AiBrain::Client
     request(:delete, path)
   end
 
-  def execute(agent_id:, conversation_display_id:, message_id:)
-    post("agents/#{agent_id}/execute", { chatwootConversationId: conversation_display_id, chatwootMessageId: message_id })
+  def send_session_message(session_id:, phone_number:, conversation_id:, message_id:, contact_id: nil)
+    post('sessions/messages', {
+      sessionId: session_id,
+      phoneNumber: phone_number,
+      chatwootConversationId: conversation_id,
+      chatwootMessageId: message_id,
+      chatwootContactId: contact_id
+    })
+  end
+
+  def confirm_delivery(session_id:, outgoing_message_id:, chatwoot_message_id: nil, status: 1, error_reason: nil)
+    post("sessions/#{session_id}/messages/#{outgoing_message_id}/confirm", {
+      chatwootMessageId: chatwoot_message_id,
+      status: status,
+      errorReason: error_reason,
+      deliveredAt: Time.current.iso8601
+    })
   end
 
   private
 
   def request(verb, path, params: nil, body: nil)
-    response = connection.run_request(verb, "/api/accounts/#{@account_id}/#{path}", body&.to_json, nil) do |req|
+    response = connection.run_request(verb, "/api/apps/#{@app_id}/#{path}", body&.to_json, nil) do |req|
       req.params.update(params) if params.present?
     end
     [response.status, response.body.present? ? JSON.parse(response.body) : nil]

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_10_22_100000) do
+ActiveRecord::Schema[7.1].define(version: 2026_10_27_193000) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -293,16 +293,20 @@ ActiveRecord::Schema[7.1].define(version: 2026_10_22_100000) do
     t.string "state", default: "bot", null: false
     t.uuid "review_id"
     t.bigint "source_message_id"
+    t.uuid "session_id"
+    t.string "active_workflow"
+    t.uuid "client_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_ai_brain_conversations_on_account_id"
     t.index ["conversation_id"], name: "index_ai_brain_conversations_on_conversation_id", unique: true
+    t.index ["session_id"], name: "index_ai_brain_conversations_on_session_id"
   end
 
   create_table "ai_brain_inboxes", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.bigint "inbox_id", null: false
-    t.uuid "agent_definition_id", null: false
+    t.uuid "agent_definition_id"
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

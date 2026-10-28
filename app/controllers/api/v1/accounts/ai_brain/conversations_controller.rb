@@ -9,7 +9,14 @@ class Api::V1::Accounts::AiBrain::ConversationsController < Api::V1::Accounts::A
 
       review = reviews.find { |item| item['id'] == state.review_id }
     end
-    render json: { state: state&.state || 'bot', review: review, aiEnabled: conversation.inbox.ai_brain_active? }
+    render json: {
+      state: state&.state || 'bot',
+      sessionId: state&.session_id,
+      activeWorkflow: state&.active_workflow,
+      clientId: state&.client_id,
+      review: review,
+      aiEnabled: conversation.inbox.ai_brain_active?
+    }
   end
 
   def end_session
@@ -18,8 +25,12 @@ class Api::V1::Accounts::AiBrain::ConversationsController < Api::V1::Accounts::A
       state = conversation.ai_brain_conversation
       return render json: { error: I18n.t('ai_brain.errors.not_human') }, status: :conflict unless state&.state == 'human'
 
-      result = client.post("conversations/#{conversation.display_id}/session/end")
-      return render_upstream(result) unless result.first == 204
+      result = if state.session_id.present?
+                 client.post("sessions/#{state.session_id}/resume")
+               else
+                 client.post("conversations/#{conversation.id}/session/end")
+               end
+      return render_upstream(result) unless result.first.in?([200, 204])
 
       state.update!(state: 'bot', review_id: nil, source_message_id: nil)
       conversation.pending! if conversation.open? && conversation.inbox.ai_brain_active?

@@ -4,10 +4,14 @@ class Api::V1::Accounts::AiBrain::BusinessRulesController < Api::V1::Accounts::A
   end
 
   def update
-    rules = params.require(:businessRules).permit(:isAiEnabled, :businessName, :timeZone, :enforceAllowlist,
-                                                  :globalInstructions, companyRules: [], prohibitedBehaviors: [],
-                                                                       workingHours: [:startTime, :endTime, :defaultSlotDurationMinutes,
-                                                                                      { activeDays: [], blackoutDates: [] }])
+    rules = params.require(:businessRules).permit(
+      :isAiEnabled, :businessName, :timeZone, :enforceAllowlist, :globalInstructions,
+      :aiProvider, :modelId, :temperature, :maxOutputTokens, :tone,
+      :inactivityNudgeMinutes, :inactivityAutoCloseMinutes, :otherSessionInactivityHours,
+      companyRules: [], prohibitedBehaviors: [],
+      requiredOnboardingFields: [], optionalOnboardingFields: [],
+      workingHours: [:startTime, :endTime, :defaultSlotDurationMinutes, { activeDays: [], blackoutDates: [] }]
+    )
     render_upstream(client.put('business-rules', rules.to_h))
   end
 end

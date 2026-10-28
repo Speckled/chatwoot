@@ -3,18 +3,13 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
-import { useAiBrainAgentsStore } from 'dashboard/store/aiBrain/agents';
 import rulesAPI from 'dashboard/api/aiBrain/businessRules';
 import servicesAPI from 'dashboard/api/aiBrain/services';
 import inboxesAPI from 'dashboard/api/aiBrain/inboxes';
 
 const { t } = useI18n();
 const route = useRoute();
-const agentsStore = useAiBrainAgentsStore();
 const accountId = computed(() => route.params.accountId);
-const agents = computed(() =>
-  agentsStore.accountId === accountId.value ? agentsStore.agents : []
-);
 const rules = ref(null);
 const services = ref([]);
 const inboxes = ref([]);
@@ -25,7 +20,6 @@ const load = async () => {
       rulesAPI.get(),
       servicesAPI.get(),
       inboxesAPI.get(),
-      agentsStore.fetch(accountId.value),
     ]);
     rules.value = ruleResponse.data;
     services.value = serviceResponse.data;
@@ -50,13 +44,15 @@ const toggle = async () => {
     busy.value = false;
   }
 };
-const assign = async (inbox, agentId) => {
+const toggleInbox = async (inbox, active) => {
   try {
-    if (agentId) await inboxesAPI.assign(inbox.id, agentId);
-    else await inboxesAPI.unassign(inbox.id);
-    inbox.aiBrainInbox = agentId
-      ? { agentDefinitionId: agentId, active: true }
-      : null;
+    if (active) {
+      await inboxesAPI.toggle(inbox.id, true);
+      inbox.aiBrainInbox = { active: true };
+    } else {
+      await inboxesAPI.unassign(inbox.id);
+      inbox.aiBrainInbox = null;
+    }
   } catch (error) {
     useAlert(t('AI_BRAIN.ERROR'));
   }
@@ -79,20 +75,20 @@ const assign = async (inbox, agentId) => {
     </section>
     <div class="grid gap-4 md:grid-cols-2">
       <section class="rounded-lg border p-4">
-        <h2 class="font-semibold">{{ t('AI_BRAIN.AGENTS') }}</h2>
-        <p>
-          {{ agents.length }} /
-          {{ agents.filter(agent => agent.isActive).length }}
-          {{ t('AI_BRAIN.ACTIVE') }}
+        <h2 class="font-semibold">{{ t('AI_BRAIN.RULES') }}</h2>
+        <p class="mt-1 text-sm">
+          {{ t('AI_BRAIN.PROVIDER') }}: {{ rules?.aiProvider || 'OpenRouter' }}
+          ({{ rules?.modelId || '-' }})
+        </p>
+        <p class="text-sm">
+          {{ t('AI_BRAIN.INACTIVITY_NUDGE') }}:
+          {{ rules?.inactivityNudgeMinutes ?? 5 }}m /
+          {{ t('AI_BRAIN.INACTIVITY_CLOSE') }}:
+          {{ rules?.inactivityAutoCloseMinutes ?? 10 }}m
         </p>
         <router-link
-          :to="{ name: 'ai_brain_agents_new', params: { accountId } }"
-        >
-          {{ t('AI_BRAIN.CREATE') }}
-        </router-link>
-        <router-link
-          class="ms-4"
-          :to="{ name: 'ai_brain_agents', params: { accountId } }"
+          class="mt-2 inline-block text-n-brand"
+          :to="{ name: 'ai_brain_rules', params: { accountId } }"
         >
           {{ t('AI_BRAIN.MANAGE') }}
         </router-link>
@@ -113,7 +109,7 @@ const assign = async (inbox, agentId) => {
           <tr>
             <th>{{ t('AI_BRAIN.INBOX') }}</th>
             <th>{{ t('AI_BRAIN.CHANNEL') }}</th>
-            <th>{{ t('AI_BRAIN.AGENT') }}</th>
+            <th>{{ t('AI_BRAIN.ACTIVE') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -121,20 +117,11 @@ const assign = async (inbox, agentId) => {
             <td class="py-2">{{ inbox.name }} (#{{ inbox.id }})</td>
             <td>{{ inbox.channelType }}</td>
             <td>
-              <select
-                class="rounded border p-2"
-                :value="inbox.aiBrainInbox?.agentDefinitionId || ''"
-                @change="assign(inbox, $event.target.value)"
-              >
-                <option value="">{{ t('AI_BRAIN.NONE') }}</option>
-                <option
-                  v-for="agent in agents.filter(item => item.isActive)"
-                  :key="agent.id"
-                  :value="agent.id"
-                >
-                  {{ agent.name }}
-                </option>
-              </select>
+              <input
+                type="checkbox"
+                :checked="Boolean(inbox.aiBrainInbox?.active)"
+                @change="toggleInbox(inbox, $event.target.checked)"
+              />
             </td>
           </tr>
         </tbody>

@@ -6,8 +6,8 @@ class InboxesAPI extends ApiClient {
     super('ai_brain/inboxes', { accountScoped: true });
   }
 
-  assign(id, agentDefinitionId) {
-    return axios.put(`${this.url}/${id}`, { agentDefinitionId, active: true });
+  toggle(id, active) {
+    return axios.put(`${this.url}/${id}`, { active });
   }
 
   unassign(id) {

@@ -10,7 +10,7 @@ class Api::V1::Accounts::AiBrain::BaseController < Api::V1::Accounts::BaseContro
   private
 
   def client
-    @client ||= AiBrain::Client.new(Current.account.id)
+    @client ||= AiBrain::Client.new
   end
 
   def render_upstream(result)

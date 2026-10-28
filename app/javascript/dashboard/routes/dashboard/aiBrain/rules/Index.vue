@@ -24,7 +24,19 @@ const load = async () => {
       rulesAPI.get(),
       faqsAPI.get(),
     ]);
-    rules.value = ruleResponse.data;
+    rules.value = {
+      aiProvider: 'OpenRouter',
+      modelId: '~deepseek/deepseek-flash-latest',
+      temperature: 0.2,
+      maxOutputTokens: 800,
+      tone: '',
+      inactivityNudgeMinutes: 5,
+      inactivityAutoCloseMinutes: 10,
+      otherSessionInactivityHours: 24,
+      requiredOnboardingFields: ['Name'],
+      optionalOnboardingFields: ['Email'],
+      ...ruleResponse.data,
+    };
     faqs.value = faqResponse.data;
   } catch (error) {
     useAlert(t('AI_BRAIN.ERROR'));
@@ -123,6 +135,87 @@ const removeFaq = async faq => {
           t('AI_BRAIN.ALLOWLIST')
         }}</label
       >
+      <fieldset class="flex flex-col gap-3 rounded border p-4">
+        <legend>{{ t('AI_BRAIN.MODEL_CONFIG') }}</legend>
+        <div class="grid gap-3 md:grid-cols-2">
+          <label
+            >{{ t('AI_BRAIN.PROVIDER')
+            }}<input
+              v-model="rules.aiProvider"
+              class="block w-full rounded border p-2"
+              required
+          /></label>
+          <label
+            >{{ t('AI_BRAIN.MODEL')
+            }}<input
+              v-model="rules.modelId"
+              class="block w-full rounded border p-2"
+              required
+          /></label>
+          <label
+            >{{ t('AI_BRAIN.TEMPERATURE')
+            }}<input
+              v-model.number="rules.temperature"
+              type="number"
+              step="0.1"
+              min="0"
+              max="2"
+              class="block w-full rounded border p-2"
+          /></label>
+          <label
+            >{{ t('AI_BRAIN.MAX_TOKENS')
+            }}<input
+              v-model.number="rules.maxOutputTokens"
+              type="number"
+              min="1"
+              max="16384"
+              class="block w-full rounded border p-2"
+          /></label>
+        </div>
+        <label
+          >{{ t('AI_BRAIN.TONE')
+          }}<input
+            v-model="rules.tone"
+            class="block w-full rounded border p-2"
+        /></label>
+      </fieldset>
+      <fieldset class="flex flex-col gap-3 rounded border p-4">
+        <legend>{{ t('AI_BRAIN.SESSION_SETTINGS') }}</legend>
+        <div class="grid gap-3 md:grid-cols-3">
+          <label
+            >{{ t('AI_BRAIN.INACTIVITY_NUDGE')
+            }}<input
+              v-model.number="rules.inactivityNudgeMinutes"
+              type="number"
+              min="1"
+              class="block w-full rounded border p-2"
+          /></label>
+          <label
+            >{{ t('AI_BRAIN.INACTIVITY_CLOSE')
+            }}<input
+              v-model.number="rules.inactivityAutoCloseMinutes"
+              type="number"
+              min="1"
+              class="block w-full rounded border p-2"
+          /></label>
+          <label
+            >{{ t('AI_BRAIN.HUMAN_TIMEOUT_HOURS')
+            }}<input
+              v-model.number="rules.otherSessionInactivityHours"
+              type="number"
+              min="1"
+              class="block w-full rounded border p-2"
+          /></label>
+        </div>
+        <StringListEditor
+          v-model="rules.requiredOnboardingFields"
+          :label="t('AI_BRAIN.REQUIRED_ONBOARDING')"
+        />
+        <StringListEditor
+          v-model="rules.optionalOnboardingFields"
+          :label="t('AI_BRAIN.OPTIONAL_ONBOARDING')"
+        />
+      </fieldset>
       <label
         >{{ t('AI_BRAIN.GLOBAL_INSTRUCTIONS')
         }}<textarea

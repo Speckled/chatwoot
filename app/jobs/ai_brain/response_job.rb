@@ -18,15 +18,22 @@ class AiBrain::ResponseJob < ApplicationJob
     link = conversation.inbox.ai_brain_inbox
     return unless eligible?(message, conversation, link)
 
-    client = AiBrain::Client.new(conversation.account_id)
-    status, result = client.execute(agent_id: link.agent_definition_id, conversation_display_id: conversation.display_id, message_id: message.id)
+    state = conversation.ai_brain_conversation || conversation.build_ai_brain_conversation(account: conversation.account)
+    client = AiBrain::Client.new
+    status, result = client.send_session_message(
+      session_id: state.session_id,
+      phone_number: phone_number_for(conversation),
+      conversation_id: conversation.id,
+      message_id: message.id,
+      contact_id: conversation.contact_id
+    )
     if status != 200
       handoff(conversation, "AI Brain: #{result&.dig('error') || "HTTP #{status}"}")
       return
     end
 
-    agent_status, agent = client.get("agents/#{link.agent_definition_id}")
-    process_outcome(conversation, message, result, agent_status == 200 ? agent['name'] : nil, client)
+    sync_session_metadata!(state, result)
+    process_outcome(conversation, message, state, result, client)
   end
 
   def eligible?(message, conversation, link)
@@ -35,48 +42,99 @@ class AiBrain::ResponseJob < ApplicationJob
       !conversation.messages.exists?(["additional_attributes ->> 'ai_brain_message_id' = ?", message.id.to_s])
   end
 
+  def phone_number_for(conversation)
+    contact = conversation.contact
+    contact&.phone_number.presence ||
+      contact&.identifier.presence ||
+      conversation.contact_inbox&.source_id.presence ||
+      "contact-#{conversation.contact_id}"
+  end
+
+  def sync_session_metadata!(state, result)
+    state.assign_attributes(
+      session_id: result['sessionId'] || state.session_id,
+      active_workflow: result['activeWorkflow']&.to_s,
+      client_id: result['clientId']
+    )
+    state.save! if state.changed? || state.new_record?
+  end
+
   def unavailable_handoff(conversation)
     conversation.with_lock do
       handoff(conversation, I18n.t('ai_brain.errors.unavailable')) if conversation.pending?
     end
   end
 
-  def process_outcome(conversation, message, result, agent_name, client)
+  def process_outcome(conversation, message, state, result, client)
     case result.fetch('outcome').to_s
     when '0', 'Reply'
-      send_message(conversation, result.fetch('textToSend'), message.id, agent_name)
+      deliver_and_confirm(conversation, message, result, client)
     when '1', 'AwaitingReview'
-      request_review(conversation, message, result, agent_name, client)
+      request_review(conversation, message, state, result, client)
     when '2', 'Handoff'
-      human_handoff(conversation, message, result, agent_name)
+      human_handoff(conversation, message, state, result, client)
     else
       handoff(conversation, I18n.t('ai_brain.errors.unknown_outcome'))
     end
   end
 
-  def request_review(conversation, message, result, agent_name, client)
+  def request_review(conversation, message, state, result, client)
     review_id = result.fetch('reviewId')
     review_status, reviews = client.get('reviews/pending')
     review = reviews.find { |candidate| candidate['id'] == review_id } if review_status == 200
     raise AiBrain::Client::UnavailableError, 'Review draft unavailable' unless review
 
-    state = conversation.ai_brain_conversation || conversation.build_ai_brain_conversation(account: conversation.account)
     state.update!(state: 'review', review_id: review_id, source_message_id: message.id)
-    send_message(conversation, result.fetch('textToSend'), message.id, agent_name)
+    deliver_and_confirm(conversation, message, result, client)
     handoff(conversation, I18n.t('ai_brain.review_note', reply: review['proposedReplyText'], reason: review['reason']))
   end
 
-  def human_handoff(conversation, message, result, agent_name)
-    state = conversation.ai_brain_conversation || conversation.build_ai_brain_conversation(account: conversation.account)
+  def human_handoff(conversation, message, state, result, client)
     state.update!(state: 'human', review_id: nil, source_message_id: nil)
-    send_message(conversation, result.fetch('textToSend'), message.id, agent_name)
+    deliver_and_confirm(conversation, message, result, client)
     handoff(conversation, I18n.t('ai_brain.handoff_note', reason: result['reason']))
   end
 
-  def send_message(conversation, text, source_id, agent_name)
-    conversation.messages.create!(account: conversation.account, inbox: conversation.inbox, message_type: :outgoing,
-                                  content: text, sender: AiBrain::BotSender.for(conversation.account),
-                                  additional_attributes: { agent_name: agent_name, ai_brain_message_id: source_id.to_s })
+  def deliver_and_confirm(conversation, message, result, client)
+    session_id = result['sessionId']
+    outgoing_id = result['outgoingMessageId']
+    sent_message = send_message(conversation, result.fetch('textToSend'), message.id, outgoing_id)
+    return unless session_id.present? && outgoing_id.present?
+
+    client.confirm_delivery(
+      session_id: session_id,
+      outgoing_message_id: outgoing_id,
+      chatwoot_message_id: sent_message.id,
+      status: 1
+    )
+  rescue StandardError => e
+    if session_id.present? && outgoing_id.present?
+      begin
+        client.confirm_delivery(
+          session_id: session_id,
+          outgoing_message_id: outgoing_id,
+          status: 2,
+          error_reason: e.message
+        )
+      rescue StandardError
+        nil
+      end
+    end
+    raise
+  end
+
+  def send_message(conversation, text, source_id, outgoing_id = nil)
+    conversation.messages.create!(
+      account: conversation.account,
+      inbox: conversation.inbox,
+      message_type: :outgoing,
+      content: text,
+      sender: AiBrain::BotSender.for(conversation.account),
+      additional_attributes: {
+        ai_brain_message_id: source_id.to_s,
+        ai_brain_outgoing_id: outgoing_id.to_s.presence
+      }.compact
+    )
   end
 
   def handoff(conversation, text)

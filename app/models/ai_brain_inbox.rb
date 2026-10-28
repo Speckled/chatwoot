@@ -3,7 +3,6 @@ class AiBrainInbox < ApplicationRecord
   belongs_to :inbox
 
   validates :inbox_id, uniqueness: true
-  validates :agent_definition_id, presence: true
   validate :inbox_belongs_to_account
 
   private

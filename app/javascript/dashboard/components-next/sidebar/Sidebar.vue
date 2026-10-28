@@ -528,12 +528,6 @@ const menuItems = computed(() => {
                 to: accountScopedRoute('ai_brain_rules'),
               },
               {
-                name: 'AI Brain Agents',
-                label: t('SIDEBAR.AI_BRAIN_AGENTS'),
-                activeOn: ['ai_brain_agents_new', 'ai_brain_agents_edit'],
-                to: accountScopedRoute('ai_brain_agents'),
-              },
-              {
                 name: 'AI Brain Services',
                 label: t('SIDEBAR.AI_BRAIN_SERVICES'),
                 to: accountScopedRoute('ai_brain_services'),

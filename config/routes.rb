@@ -47,6 +47,8 @@ Rails.application.routes.draw do
   get '/api', to: 'api#index'
   namespace :api, defaults: { format: 'json' } do
     namespace :v1 do
+      post 'apps/:app_id/sessions/:session_id/messages/outbound', to: 'apps/sessions#outbound'
+
       # ----------------------------------
       # start of account scoped api routes
       resources :accounts, only: [:create, :show, :update] do
@@ -57,9 +59,6 @@ Rails.application.routes.draw do
 
         scope module: :accounts do
           namespace :ai_brain do
-            resources :agents, only: [:index, :show, :create, :update, :destroy] do
-              get :options, on: :collection
-            end
             resource :business_rules, only: [:show, :update]
             resources :faqs, only: [:index, :show, :create, :update, :destroy]
             resources :services, only: [:index]

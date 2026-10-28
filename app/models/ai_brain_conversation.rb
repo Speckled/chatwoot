@@ -10,6 +10,10 @@ class AiBrainConversation < ApplicationRecord
     state == 'bot'
   end
 
+  def reset_to_bot!
+    update!(state: 'bot', review_id: nil, source_message_id: nil, session_id: nil, active_workflow: nil)
+  end
+
   private
 
   def conversation_belongs_to_account
