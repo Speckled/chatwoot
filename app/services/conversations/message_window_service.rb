@@ -25,7 +25,8 @@ class Conversations::MessageWindowService
     when 'Channel::Tiktok'
       tiktok_messaging_window
     when 'Channel::Whatsapp'
-      MESSAGING_WINDOW_24_HOURS
+      # AI Brain test inboxes have no Meta messaging window.
+      @conversation.inbox.channel.try(:test_provider?) ? nil : MESSAGING_WINDOW_24_HOURS
     when 'Channel::TwilioSms'
       twilio_messaging_window
     end

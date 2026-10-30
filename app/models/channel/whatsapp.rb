@@ -31,7 +31,8 @@ class Channel::Whatsapp < ApplicationRecord
   encrypts :business_management_token if Chatwoot.encryption_configured?
 
   # default at the moment is 360dialog lets change later.
-  PROVIDERS = %w[default whatsapp_cloud].freeze
+  # test: local-only provider used by the AI Brain test lab (no external API calls).
+  PROVIDERS = %w[default whatsapp_cloud test].freeze
   before_validation :ensure_webhook_verify_token
 
   validates :provider, inclusion: { in: PROVIDERS }
@@ -69,11 +70,18 @@ class Channel::Whatsapp < ApplicationRecord
   end
 
   def provider_service
-    if provider == 'whatsapp_cloud'
+    case provider
+    when 'whatsapp_cloud'
       Whatsapp::Providers::WhatsappCloudService.new(whatsapp_channel: self)
+    when 'test'
+      Whatsapp::Providers::WhatsappTestService.new(whatsapp_channel: self)
     else
       Whatsapp::Providers::Whatsapp360DialogService.new(whatsapp_channel: self)
     end
+  end
+
+  def test_provider?
+    provider == 'test'
   end
 
   def template_access_token

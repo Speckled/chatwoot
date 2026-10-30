@@ -69,10 +69,14 @@ Rails.application.routes.draw do
             resources :calendars, only: [:index], param: :calendar_id, constraints: { calendar_id: %r{[^/]+} } do
               put :user, on: :member
             end
-            resources :inboxes, only: [:index, :update, :destroy], param: :inbox_id
+            resources :inboxes, only: [:index, :create, :update, :destroy], param: :inbox_id
             resources :conversations, only: [:show], param: :conversation_id do
               post :end_session, on: :member
               post :validate_review, on: :member
+            end
+            resources :test_conversations, only: [:index, :show, :create] do
+              get :contacts, on: :collection
+              post :messages, on: :member
             end
           end
           if ChatwootApp.enterprise?

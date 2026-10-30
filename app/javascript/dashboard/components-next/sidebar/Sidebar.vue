@@ -532,6 +532,11 @@ const menuItems = computed(() => {
                 label: t('SIDEBAR.AI_BRAIN_SERVICES'),
                 to: accountScopedRoute('ai_brain_services'),
               },
+              {
+                name: 'AI Brain Test',
+                label: t('SIDEBAR.AI_BRAIN_TEST'),
+                to: accountScopedRoute('ai_brain_test'),
+              },
             ],
           },
         ]

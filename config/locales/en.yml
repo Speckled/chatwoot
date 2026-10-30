@@ -39,6 +39,11 @@ en:
       not_human: "This conversation is not under human control."
       not_review: "This conversation has no pending review."
       empty_reply: "The validated reply cannot be blank."
+      invalid_phone: "Enter a valid phone number in international format (e.g. +5511999990000)."
+      empty_message: "The message cannot be blank."
+      invalid_sender_role: "Sender role must be 'client' or 'secretary'."
+      contact_required: "Select a contact or enter a phone number."
+      whatsapp_inbox_required: "Select a WhatsApp inbox."
   hello: 'Hello world'
   inbox:
     reauthorization:
