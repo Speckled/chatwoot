@@ -2,7 +2,16 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
+import SettingsLayout from '../../settings/SettingsLayout.vue';
+import BaseSettingsHeader from '../../settings/components/BaseSettingsHeader.vue';
+import SectionLayout from '../../settings/account/components/SectionLayout.vue';
 import TabBar from 'dashboard/components-next/tabbar/TabBar.vue';
+import WithLabel from 'v3/components/Form/WithLabel.vue';
+import NextInput from 'dashboard/components-next/input/Input.vue';
+import TextArea from 'dashboard/components-next/textarea/TextArea.vue';
+import Switch from 'dashboard/components-next/switch/Switch.vue';
+import Checkbox from 'dashboard/components-next/checkbox/Checkbox.vue';
+import Button from 'dashboard/components-next/button/Button.vue';
 import StringListEditor from 'dashboard/components-next/aiBrain/StringListEditor.vue';
 import rulesAPI from 'dashboard/api/aiBrain/businessRules';
 import faqsAPI from 'dashboard/api/aiBrain/faqs';
@@ -105,269 +114,361 @@ const removeFaq = async faq => {
 </script>
 
 <template>
-  <main class="flex flex-col gap-6 overflow-y-auto p-6">
-    <h1 class="text-2xl font-semibold">{{ t('AI_BRAIN.RULES') }}</h1>
-    <TabBar
-      :tabs="tabs"
-      :initial-active-tab="activeTab"
-      @tab-changed="tab => (activeTab = tabs.indexOf(tab))"
-    />
-    <form
-      v-if="activeTab === 0 && rules"
-      class="flex max-w-3xl flex-col gap-5"
-      @submit.prevent="saveRules"
-    >
-      <label
-        >{{ t('AI_BRAIN.BUSINESS_NAME')
-        }}<input
-          v-model="rules.businessName"
-          class="block w-full rounded border p-2"
-      /></label>
-      <label
-        >{{ t('AI_BRAIN.TIME_ZONE')
-        }}<input
-          v-model="rules.timeZone"
-          class="block w-full rounded border p-2"
-          required
-      /></label>
-      <label class="flex gap-2"
-        ><input v-model="rules.enforceAllowlist" type="checkbox" />{{
-          t('AI_BRAIN.ALLOWLIST')
-        }}</label
+  <SettingsLayout :is-loading="busy && !rules">
+    <template #header>
+      <BaseSettingsHeader :title="t('AI_BRAIN.RULES')">
+        <template #tabs>
+          <TabBar
+            :tabs="tabs"
+            :initial-active-tab="activeTab"
+            @tab-changed="tab => (activeTab = tabs.indexOf(tab))"
+          />
+        </template>
+      </BaseSettingsHeader>
+    </template>
+    <template #body>
+      <form
+        v-if="activeTab === 0 && rules"
+        class="flex flex-col gap-6 w-full"
+        @submit.prevent="saveRules"
       >
-      <fieldset class="flex flex-col gap-3 rounded border p-4">
-        <legend>{{ t('AI_BRAIN.MODEL_CONFIG') }}</legend>
-        <div class="grid gap-3 md:grid-cols-2">
-          <label
-            >{{ t('AI_BRAIN.PROVIDER')
-            }}<input
-              v-model="rules.aiProvider"
-              class="block w-full rounded border p-2"
-              required
-          /></label>
-          <label
-            >{{ t('AI_BRAIN.MODEL')
-            }}<input
-              v-model="rules.modelId"
-              class="block w-full rounded border p-2"
-              required
-          /></label>
-          <label
-            >{{ t('AI_BRAIN.TEMPERATURE')
-            }}<input
-              v-model.number="rules.temperature"
-              type="number"
-              step="0.1"
-              min="0"
-              max="2"
-              class="block w-full rounded border p-2"
-          /></label>
-          <label
-            >{{ t('AI_BRAIN.MAX_TOKENS')
-            }}<input
-              v-model.number="rules.maxOutputTokens"
-              type="number"
-              min="1"
-              max="16384"
-              class="block w-full rounded border p-2"
-          /></label>
-        </div>
-        <label
-          >{{ t('AI_BRAIN.TONE')
-          }}<input
-            v-model="rules.tone"
-            class="block w-full rounded border p-2"
-        /></label>
-      </fieldset>
-      <fieldset class="flex flex-col gap-3 rounded border p-4">
-        <legend>{{ t('AI_BRAIN.SESSION_SETTINGS') }}</legend>
-        <div class="grid gap-3 md:grid-cols-3">
-          <label
-            >{{ t('AI_BRAIN.INACTIVITY_NUDGE')
-            }}<input
-              v-model.number="rules.inactivityNudgeMinutes"
-              type="number"
-              min="1"
-              class="block w-full rounded border p-2"
-          /></label>
-          <label
-            >{{ t('AI_BRAIN.INACTIVITY_CLOSE')
-            }}<input
-              v-model.number="rules.inactivityAutoCloseMinutes"
-              type="number"
-              min="1"
-              class="block w-full rounded border p-2"
-          /></label>
-          <label
-            >{{ t('AI_BRAIN.HUMAN_TIMEOUT_HOURS')
-            }}<input
-              v-model.number="rules.otherSessionInactivityHours"
-              type="number"
-              min="1"
-              class="block w-full rounded border p-2"
-          /></label>
-        </div>
-        <StringListEditor
-          v-model="rules.requiredOnboardingFields"
-          :label="t('AI_BRAIN.REQUIRED_ONBOARDING')"
-        />
-        <StringListEditor
-          v-model="rules.optionalOnboardingFields"
-          :label="t('AI_BRAIN.OPTIONAL_ONBOARDING')"
-        />
-      </fieldset>
-      <label
-        >{{ t('AI_BRAIN.GLOBAL_INSTRUCTIONS')
-        }}<textarea
-          v-model="rules.globalInstructions"
-          class="block w-full rounded border p-2"
-          rows="5"
-        />
-      </label>
-      <StringListEditor
-        v-model="rules.companyRules"
-        :label="t('AI_BRAIN.COMPANY_RULES')"
-      />
-      <StringListEditor
-        v-model="rules.prohibitedBehaviors"
-        :label="t('AI_BRAIN.PROHIBITED')"
-      />
-      <fieldset class="flex flex-col gap-3 rounded border p-4">
-        <legend>{{ t('AI_BRAIN.WORKING_HOURS') }}</legend>
-        <div class="flex gap-3">
-          <label v-for="day in days" :key="day" class="flex gap-1">
-            <input
-              type="checkbox"
-              :checked="rules.workingHours.activeDays.includes(day)"
-              @change="toggleDay(day)"
-            />{{ t(`AI_BRAIN.DAYS.${day}`) }}
-          </label>
-        </div>
-        <label
-          >{{ t('AI_BRAIN.START')
-          }}<input
-            v-model="rules.workingHours.startTime"
-            type="time"
-            class="ms-2 rounded border p-2"
-        /></label>
-        <label
-          >{{ t('AI_BRAIN.END')
-          }}<input
-            v-model="rules.workingHours.endTime"
-            type="time"
-            class="ms-2 rounded border p-2"
-        /></label>
-        <label
-          >{{ t('AI_BRAIN.SLOT')
-          }}<input
-            v-model.number="rules.workingHours.defaultSlotDurationMinutes"
-            type="number"
-            min="1"
-            class="ms-2 rounded border p-2"
-        /></label>
-        <StringListEditor
-          v-model="rules.workingHours.blackoutDates"
-          :label="t('AI_BRAIN.BLACKOUT_DATES')"
-        />
-      </fieldset>
-      <button
-        type="submit"
-        :disabled="busy"
-        class="w-fit rounded bg-n-brand px-4 py-2 text-white"
-      >
-        {{ t('AI_BRAIN.SAVE') }}
-      </button>
-    </form>
-    <section v-else-if="activeTab === 1" class="flex flex-col gap-4">
-      <button
-        type="button"
-        class="w-fit rounded bg-n-brand px-4 py-2 text-white"
-        @click="newFaq"
-      >
-        {{ t('AI_BRAIN.CREATE') }}
-      </button>
-      <table class="w-full">
-        <thead>
-          <tr>
-            <th>{{ t('AI_BRAIN.CATEGORY') }}</th>
-            <th>{{ t('AI_BRAIN.TITLE') }}</th>
-            <th>{{ t('AI_BRAIN.TAGS') }}</th>
-            <th>{{ t('AI_BRAIN.ACTIVE') }}</th>
-            <th>{{ t('AI_BRAIN.ACTIONS') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="faq in faqs" :key="faq.id" class="border-t">
-            <td>{{ faq.category }}</td>
-            <td>{{ faq.title }}</td>
-            <td>{{ faq.tags?.join(', ') }}</td>
-            <td>
-              {{ t(faq.isActive ? 'AI_BRAIN.ACTIVE' : 'AI_BRAIN.INACTIVE') }}
-            </td>
-            <td class="flex gap-3">
-              <button type="button" @click="editFaq(faq)">
-                {{ t('AI_BRAIN.EDIT') }}</button
-              ><button type="button" @click="removeFaq(faq)">
-                {{ t('AI_BRAIN.REMOVE') }}
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <div
-        v-if="editing"
-        role="dialog"
-        aria-modal="true"
-        class="rounded border bg-n-solid-1 p-5 shadow-lg"
-      >
-        <form class="flex max-w-xl flex-col gap-3" @submit.prevent="saveFaq">
-          <label
-            >{{ t('AI_BRAIN.CATEGORY')
-            }}<input
-              v-model="editing.category"
-              class="block w-full rounded border p-2"
-          /></label>
-          <label
-            >{{ t('AI_BRAIN.TITLE')
-            }}<input
-              v-model="editing.title"
-              required
-              class="block w-full rounded border p-2"
-          /></label>
-          <label
-            >{{ t('AI_BRAIN.CONTENT')
-            }}<textarea
-              v-model="editing.content"
-              required
-              class="block w-full rounded border p-2"
-            />
-          </label>
-          <label
-            >{{ t('AI_BRAIN.TAGS')
-            }}<input
-              :value="editing.tags.join(', ')"
-              class="block w-full rounded border p-2"
-              @input="
-                editing.tags = $event.target.value
-                  .split(',')
-                  .map(tag => tag.trim())
-                  .filter(Boolean)
-              "
-          /></label>
-          <label class="flex gap-2"
-            ><input v-model="editing.isActive" type="checkbox" />{{
-              t('AI_BRAIN.ACTIVE')
-            }}</label
-          >
-          <div class="flex gap-3">
-            <button type="submit" :disabled="busy">
-              {{ t('AI_BRAIN.SAVE') }}</button
-            ><button type="button" @click="editing = null">
-              {{ t('AI_BRAIN.CANCEL') }}
-            </button>
+        <SectionLayout :title="t('AI_BRAIN.RULES')" class="!pt-0">
+          <div class="grid gap-4">
+            <WithLabel
+              name="business-name"
+              :label="t('AI_BRAIN.BUSINESS_NAME')"
+            >
+              <NextInput v-model="rules.businessName" class="w-full" />
+            </WithLabel>
+            <WithLabel name="time-zone" :label="t('AI_BRAIN.TIME_ZONE')">
+              <NextInput v-model="rules.timeZone" class="w-full" required />
+            </WithLabel>
+            <div
+              class="flex items-center justify-between p-4 rounded-xl border border-n-weak bg-n-solid-1"
+            >
+              <span class="text-sm font-medium text-n-slate-12">
+                {{ t('AI_BRAIN.ALLOWLIST') }}
+              </span>
+              <Switch v-model="rules.enforceAllowlist" />
+            </div>
           </div>
-        </form>
-      </div>
-    </section>
-  </main>
+        </SectionLayout>
+
+        <SectionLayout :title="t('AI_BRAIN.MODEL_CONFIG')" with-border>
+          <div class="grid gap-4">
+            <div class="grid gap-4 md:grid-cols-2">
+              <WithLabel name="ai-provider" :label="t('AI_BRAIN.PROVIDER')">
+                <NextInput v-model="rules.aiProvider" class="w-full" required />
+              </WithLabel>
+              <WithLabel name="model-id" :label="t('AI_BRAIN.MODEL')">
+                <NextInput v-model="rules.modelId" class="w-full" required />
+              </WithLabel>
+            </div>
+            <div class="grid gap-4 md:grid-cols-2">
+              <WithLabel name="temperature" :label="t('AI_BRAIN.TEMPERATURE')">
+                <NextInput
+                  v-model.number="rules.temperature"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="2"
+                  class="w-full"
+                />
+              </WithLabel>
+              <WithLabel name="max-tokens" :label="t('AI_BRAIN.MAX_TOKENS')">
+                <NextInput
+                  v-model.number="rules.maxOutputTokens"
+                  type="number"
+                  min="1"
+                  max="16384"
+                  class="w-full"
+                />
+              </WithLabel>
+            </div>
+            <WithLabel name="tone" :label="t('AI_BRAIN.TONE')">
+              <NextInput v-model="rules.tone" class="w-full" />
+            </WithLabel>
+          </div>
+        </SectionLayout>
+
+        <SectionLayout :title="t('AI_BRAIN.SESSION_SETTINGS')" with-border>
+          <div class="grid gap-4">
+            <div class="grid gap-4 md:grid-cols-3">
+              <WithLabel
+                name="nudge-minutes"
+                :label="t('AI_BRAIN.INACTIVITY_NUDGE')"
+              >
+                <NextInput
+                  v-model.number="rules.inactivityNudgeMinutes"
+                  type="number"
+                  min="1"
+                  class="w-full"
+                />
+              </WithLabel>
+              <WithLabel
+                name="close-minutes"
+                :label="t('AI_BRAIN.INACTIVITY_CLOSE')"
+              >
+                <NextInput
+                  v-model.number="rules.inactivityAutoCloseMinutes"
+                  type="number"
+                  min="1"
+                  class="w-full"
+                />
+              </WithLabel>
+              <WithLabel
+                name="handoff-hours"
+                :label="t('AI_BRAIN.HUMAN_TIMEOUT_HOURS')"
+              >
+                <NextInput
+                  v-model.number="rules.otherSessionInactivityHours"
+                  type="number"
+                  min="1"
+                  class="w-full"
+                />
+              </WithLabel>
+            </div>
+            <StringListEditor
+              v-model="rules.requiredOnboardingFields"
+              :label="t('AI_BRAIN.REQUIRED_ONBOARDING')"
+            />
+            <StringListEditor
+              v-model="rules.optionalOnboardingFields"
+              :label="t('AI_BRAIN.OPTIONAL_ONBOARDING')"
+            />
+          </div>
+        </SectionLayout>
+
+        <SectionLayout :title="t('AI_BRAIN.GLOBAL_INSTRUCTIONS')" with-border>
+          <div class="grid gap-4">
+            <WithLabel
+              name="global-instructions"
+              :label="t('AI_BRAIN.GLOBAL_INSTRUCTIONS')"
+            >
+              <TextArea
+                v-model="rules.globalInstructions"
+                :max-length="4000"
+                rows="5"
+                class="w-full"
+              />
+            </WithLabel>
+            <StringListEditor
+              v-model="rules.companyRules"
+              :label="t('AI_BRAIN.COMPANY_RULES')"
+            />
+            <StringListEditor
+              v-model="rules.prohibitedBehaviors"
+              :label="t('AI_BRAIN.PROHIBITED')"
+            />
+          </div>
+        </SectionLayout>
+
+        <SectionLayout :title="t('AI_BRAIN.WORKING_HOURS')" with-border>
+          <div class="grid gap-4">
+            <div class="flex flex-wrap gap-4 py-1">
+              <label
+                v-for="day in days"
+                :key="day"
+                class="flex items-center gap-2 cursor-pointer text-sm text-n-slate-12"
+              >
+                <Checkbox
+                  :model-value="rules.workingHours?.activeDays?.includes(day)"
+                  @change="toggleDay(day)"
+                />
+                <span>{{ t(`AI_BRAIN.DAYS.${day}`) }}</span>
+              </label>
+            </div>
+            <div class="grid gap-4 md:grid-cols-3">
+              <WithLabel name="start-time" :label="t('AI_BRAIN.START')">
+                <NextInput
+                  v-model="rules.workingHours.startTime"
+                  type="time"
+                  class="w-full"
+                />
+              </WithLabel>
+              <WithLabel name="end-time" :label="t('AI_BRAIN.END')">
+                <NextInput
+                  v-model="rules.workingHours.endTime"
+                  type="time"
+                  class="w-full"
+                />
+              </WithLabel>
+              <WithLabel name="slot-duration" :label="t('AI_BRAIN.SLOT')">
+                <NextInput
+                  v-model.number="rules.workingHours.defaultSlotDurationMinutes"
+                  type="number"
+                  min="1"
+                  class="w-full"
+                />
+              </WithLabel>
+            </div>
+            <StringListEditor
+              v-model="rules.workingHours.blackoutDates"
+              :label="t('AI_BRAIN.BLACKOUT_DATES')"
+            />
+          </div>
+        </SectionLayout>
+
+        <div class="pt-2">
+          <Button
+            type="submit"
+            color="blue"
+            :is-loading="busy"
+            :label="t('AI_BRAIN.SAVE')"
+          />
+        </div>
+      </form>
+
+      <section v-else-if="activeTab === 1" class="flex flex-col gap-4 w-full">
+        <div class="flex justify-end w-full">
+          <Button
+            type="button"
+            color="blue"
+            size="sm"
+            icon="i-woot-plus"
+            :label="t('AI_BRAIN.CREATE')"
+            @click="newFaq"
+          />
+        </div>
+
+        <div class="w-full">
+          <table class="min-w-full table-auto divide-y divide-n-weak">
+            <thead>
+              <tr class="border-t border-n-weak">
+                <th
+                  class="py-3 ltr:pr-4 rtl:pl-4 text-start text-sm font-medium text-n-slate-12"
+                >
+                  {{ t('AI_BRAIN.CATEGORY') }}
+                </th>
+                <th
+                  class="py-3 ltr:pr-4 rtl:pl-4 text-start text-sm font-medium text-n-slate-12"
+                >
+                  {{ t('AI_BRAIN.TITLE') }}
+                </th>
+                <th
+                  class="py-3 ltr:pr-4 rtl:pl-4 text-start text-sm font-medium text-n-slate-12"
+                >
+                  {{ t('AI_BRAIN.TAGS') }}
+                </th>
+                <th
+                  class="py-3 ltr:pr-4 rtl:pl-4 text-start text-sm font-medium text-n-slate-12"
+                >
+                  {{ t('AI_BRAIN.ACTIVE') }}
+                </th>
+                <th
+                  class="py-3 ltr:pr-4 rtl:pl-4 text-end text-sm font-medium text-n-slate-12"
+                >
+                  {{ t('AI_BRAIN.ACTIONS') }}
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-n-weak text-n-slate-11">
+              <tr v-for="faq in faqs" :key="faq.id">
+                <td class="py-3 ltr:pr-4 rtl:pl-4 text-sm text-n-slate-12">
+                  {{ faq.category }}
+                </td>
+                <td
+                  class="py-3 ltr:pr-4 rtl:pl-4 text-sm text-n-slate-12 font-medium"
+                >
+                  {{ faq.title }}
+                </td>
+                <td class="py-3 ltr:pr-4 rtl:pl-4 text-sm text-n-slate-11">
+                  {{ faq.tags?.join(', ') }}
+                </td>
+                <td class="py-3 ltr:pr-4 rtl:pl-4 text-sm">
+                  <span
+                    :class="faq.isActive ? 'text-n-teal-11' : 'text-n-slate-10'"
+                  >
+                    {{
+                      t(faq.isActive ? 'AI_BRAIN.ACTIVE' : 'AI_BRAIN.INACTIVE')
+                    }}
+                  </span>
+                </td>
+                <td class="py-3 ltr:pr-4 rtl:pl-4 text-end">
+                  <div class="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      color="slate"
+                      size="sm"
+                      icon="i-woot-edit-pen"
+                      @click="editFaq(faq)"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      color="ruby"
+                      size="sm"
+                      icon="i-woot-bin"
+                      @click="removeFaq(faq)"
+                    />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div
+          v-if="editing"
+          class="rounded-xl border border-n-weak bg-n-solid-1 p-6 shadow-xl mt-4"
+        >
+          <form class="flex flex-col gap-4" @submit.prevent="saveFaq">
+            <h3 class="text-base font-medium text-n-slate-12">
+              {{ editing.id ? t('AI_BRAIN.EDIT') : t('AI_BRAIN.CREATE') }}
+            </h3>
+            <WithLabel name="faq-category" :label="t('AI_BRAIN.CATEGORY')">
+              <NextInput v-model="editing.category" class="w-full" />
+            </WithLabel>
+            <WithLabel name="faq-title" :label="t('AI_BRAIN.TITLE')">
+              <NextInput v-model="editing.title" class="w-full" required />
+            </WithLabel>
+            <WithLabel name="faq-content" :label="t('AI_BRAIN.CONTENT')">
+              <TextArea
+                v-model="editing.content"
+                rows="4"
+                class="w-full"
+                required
+              />
+            </WithLabel>
+            <WithLabel name="faq-tags" :label="t('AI_BRAIN.TAGS')">
+              <NextInput
+                :model-value="editing.tags.join(', ')"
+                class="w-full"
+                @input="
+                  editing.tags = $event.target.value
+                    .split(',')
+                    .map(tag => tag.trim())
+                    .filter(Boolean)
+                "
+              />
+            </WithLabel>
+            <div
+              class="flex items-center justify-between p-3 rounded-lg border border-n-weak bg-n-solid-2"
+            >
+              <span class="text-sm font-medium text-n-slate-12">{{
+                t('AI_BRAIN.ACTIVE')
+              }}</span>
+              <Switch v-model="editing.isActive" />
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+              <Button
+                type="button"
+                variant="faded"
+                color="slate"
+                :label="t('AI_BRAIN.CANCEL')"
+                @click="editing = null"
+              />
+              <Button
+                type="submit"
+                color="blue"
+                :is-loading="busy"
+                :label="t('AI_BRAIN.SAVE')"
+              />
+            </div>
+          </form>
+        </div>
+      </section>
+    </template>
+  </SettingsLayout>
 </template>

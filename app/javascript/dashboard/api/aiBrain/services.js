@@ -19,6 +19,17 @@ class ServicesAPI extends ApiClient {
   getCalendars() {
     return axios.get(`${this.baseUrl()}/ai_brain/calendars`);
   }
+
+  getUsers(params = {}) {
+    return axios.get(`${this.baseUrl()}/ai_brain/users`, { params });
+  }
+
+  linkCalendarUser(calendarId, userId) {
+    return axios.put(
+      `${this.baseUrl()}/ai_brain/calendars/${encodeURIComponent(calendarId)}/user`,
+      { userId: userId || null }
+    );
+  }
 }
 
 export default new ServicesAPI();

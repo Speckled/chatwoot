@@ -12,8 +12,9 @@ const modelValue = defineModel({
 });
 
 const updateValue = () => {
-  modelValue.value = !modelValue.value;
-  emit('change', !modelValue.value);
+  const newValue = !modelValue.value;
+  modelValue.value = newValue;
+  emit('change', newValue);
 };
 </script>
 

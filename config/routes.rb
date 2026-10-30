@@ -62,10 +62,13 @@ Rails.application.routes.draw do
             resource :business_rules, only: [:show, :update]
             resources :faqs, only: [:index, :show, :create, :update, :destroy]
             resources :services, only: [:index]
+            resources :users, only: [:index]
             resource :google_calendar, only: [:destroy], controller: :google_calendar do
               get :authorization_url
             end
-            resources :calendars, only: [:index]
+            resources :calendars, only: [:index], param: :calendar_id, constraints: { calendar_id: %r{[^/]+} } do
+              put :user, on: :member
+            end
             resources :inboxes, only: [:index, :update, :destroy], param: :inbox_id
             resources :conversations, only: [:show], param: :conversation_id do
               post :end_session, on: :member

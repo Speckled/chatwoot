@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import NextInput from 'dashboard/components-next/input/Input.vue';
+import Button from 'dashboard/components-next/button/Button.vue';
 
 const props = defineProps({
   modelValue: { type: Array, default: () => [] },
@@ -28,26 +30,44 @@ const remove = index =>
 
 <template>
   <div class="flex flex-col gap-2">
-    <label class="font-medium">{{ label }}</label>
-    <div v-for="(item, index) in modelValue" :key="index" class="flex gap-2">
-      <input
-        :value="item"
-        class="flex-1 rounded border p-2"
+    <label class="text-sm font-medium leading-6 text-n-slate-12">{{
+      label
+    }}</label>
+    <div
+      v-for="(item, index) in modelValue"
+      :key="index"
+      class="flex items-center gap-2"
+    >
+      <NextInput
+        :model-value="item"
+        class="flex-1"
         @input="change(index, $event.target.value)"
       />
-      <button type="button" class="text-n-ruby-9" @click="remove(index)">
-        {{ t('AI_BRAIN.REMOVE') }}
-      </button>
-    </div>
-    <div class="flex gap-2">
-      <input
-        v-model="draft"
-        class="flex-1 rounded border p-2"
-        @keydown.enter.prevent="add"
+      <Button
+        type="button"
+        variant="ghost"
+        color="ruby"
+        size="sm"
+        icon="i-woot-bin"
+        :label="t('AI_BRAIN.REMOVE')"
+        @click="remove(index)"
       />
-      <button type="button" class="rounded border px-3" @click="add">
-        {{ t('AI_BRAIN.ADD') }}
-      </button>
+    </div>
+    <div class="flex items-center gap-2">
+      <NextInput
+        v-model="draft"
+        class="flex-1"
+        :placeholder="label"
+        @enter="add"
+      />
+      <Button
+        type="button"
+        variant="faded"
+        color="slate"
+        size="md"
+        :label="t('AI_BRAIN.ADD')"
+        @click="add"
+      />
     </div>
   </div>
 </template>

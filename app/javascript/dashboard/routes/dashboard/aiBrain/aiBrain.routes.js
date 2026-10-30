@@ -1,4 +1,5 @@
 import { frontendURL } from '../../../helper/URLHelper';
+import SettingsWrapper from '../settings/SettingsWrapper.vue';
 import Overview from './overview/Index.vue';
 import Rules from './rules/Index.vue';
 import Services from './services/Index.vue';
@@ -6,9 +7,16 @@ import Services from './services/Index.vue';
 const meta = { permissions: ['administrator'] };
 const route = (path, name, component) => ({
   path: frontendURL(`accounts/:accountId/ai-brain/${path}`),
-  name,
-  component,
-  meta,
+  component: SettingsWrapper,
+  props: { keepAlive: false },
+  children: [
+    {
+      path: '',
+      name,
+      component,
+      meta,
+    },
+  ],
 });
 
 export default [
