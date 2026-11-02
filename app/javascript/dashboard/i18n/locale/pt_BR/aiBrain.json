@@ -124,6 +124,7 @@
     "SEND": "Enviar",
     "AI_THINKING": "A IA está gerando uma resposta...",
     "AI_STATE": "Estado da IA",
+    "CONVERSATION_STATUS": "Status",
     "WORKFLOW": "Fluxo",
     "SESSION": "Sessão",
     "SESSION_ID": "ID da Sessão",

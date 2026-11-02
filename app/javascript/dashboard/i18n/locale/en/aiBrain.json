@@ -124,6 +124,7 @@
     "SEND": "Send",
     "AI_THINKING": "AI is generating a reply...",
     "AI_STATE": "AI State",
+    "CONVERSATION_STATUS": "Status",
     "WORKFLOW": "Workflow",
     "SESSION": "Session",
     "SESSION_ID": "Session ID",

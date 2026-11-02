@@ -129,6 +129,26 @@ const formatTime = timestamp => {
         <!-- AI metadata chips -->
         <div class="flex flex-wrap items-center gap-2 text-xs">
           <div
+            v-if="conversation.status"
+            class="flex items-center gap-1.5 px-2 py-1 rounded-md border border-n-weak bg-n-solid-1"
+          >
+            <span class="text-n-slate-10 font-medium">
+              {{ t('AI_BRAIN.CONVERSATION_STATUS') }}:
+            </span>
+            <span
+              class="font-semibold uppercase tracking-wider"
+              :class="{
+                'text-n-teal-11': conversation.status === 'open',
+                'text-n-amber-11': conversation.status === 'pending',
+                'text-n-slate-11': conversation.status === 'resolved',
+                'text-n-violet-11': conversation.status === 'snoozed',
+              }"
+            >
+              {{ conversation.status }}
+            </span>
+          </div>
+
+          <div
             class="flex items-center gap-1.5 px-2 py-1 rounded-md border border-n-weak bg-n-solid-1"
           >
             <span class="text-n-slate-10 font-medium">

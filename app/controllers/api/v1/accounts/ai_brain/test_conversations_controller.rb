@@ -149,10 +149,11 @@ class Api::V1::Accounts::AiBrain::TestConversationsController < Api::V1::Account
   end
 
   # A real incoming WhatsApp message on a bot-owned conversation is only routed to the AI
-  # while the conversation is pending. Resolved conversations are reopened by Message itself.
+  # while the conversation is pending.
   def reactivate_bot_conversation
-    return unless @conversation.open? && @conversation.inbox.ai_brain_active?
+    return unless @conversation.inbox.ai_brain_active?
     return unless @conversation.ai_brain_conversation&.state.in?([nil, 'bot'])
+    return unless @conversation.open? || @conversation.resolved?
 
     @conversation.pending!
   end

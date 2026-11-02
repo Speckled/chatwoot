@@ -104,6 +104,21 @@ const stateBadgeClass = state => {
       return 'bg-n-slate-3 text-n-slate-11 border-n-slate-6';
   }
 };
+
+const statusBadgeClass = status => {
+  switch (status) {
+    case 'open':
+      return 'bg-n-teal-3 text-n-teal-11 border-n-teal-6';
+    case 'pending':
+      return 'bg-n-amber-3 text-n-amber-11 border-n-amber-6';
+    case 'resolved':
+      return 'bg-n-slate-3 text-n-slate-11 border-n-slate-6';
+    case 'snoozed':
+      return 'bg-n-violet-3 text-n-violet-11 border-n-violet-6';
+    default:
+      return 'bg-n-slate-3 text-n-slate-11 border-n-slate-6';
+  }
+};
 </script>
 
 <template>
@@ -305,12 +320,21 @@ const stateBadgeClass = state => {
           <span class="text-n-slate-11 font-mono text-[11px] truncate">
             {{ conv.contact?.phoneNumber || `#${conv.id}` }}
           </span>
-          <span
-            class="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded border"
-            :class="stateBadgeClass(conv.aiBrain?.state)"
-          >
-            {{ conv.aiBrain?.state || 'bot' }}
-          </span>
+          <div class="flex items-center gap-1 flex-shrink-0">
+            <span
+              v-if="conv.status"
+              class="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded border"
+              :class="statusBadgeClass(conv.status)"
+            >
+              {{ conv.status }}
+            </span>
+            <span
+              class="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded border"
+              :class="stateBadgeClass(conv.aiBrain?.state)"
+            >
+              {{ conv.aiBrain?.state || 'bot' }}
+            </span>
+          </div>
         </div>
 
         <p

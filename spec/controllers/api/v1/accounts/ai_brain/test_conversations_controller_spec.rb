@@ -148,6 +148,20 @@ RSpec.describe 'AI Brain Test Conversations API', type: :request do
       expect(msg.source_id).to start_with('wamid.test.')
     end
 
+    it 'reactivates a resolved bot conversation to pending before creating the incoming message' do
+      conversation.resolved!
+
+      post url,
+           headers: admin.create_new_auth_token,
+           params: { content: 'Olá novamente', sender_role: 'client' },
+           as: :json
+
+      expect(response).to have_http_status(:created)
+      data = response.parsed_body
+      expect(data['status']).to eq('pending')
+      expect(data['awaitingAi']).to be(true)
+    end
+
     it 'creates an outgoing message when sent as secretary and preserves AI state' do
       post url,
            headers: admin.create_new_auth_token,

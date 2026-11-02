@@ -28,7 +28,9 @@ export function useAiBrainTestLab() {
 
   let pollTimer = null;
   let pollAttempts = 0;
+  let idlePollTimer = null;
   const MAX_POLL_ATTEMPTS = 25; // ~37 seconds at 1.5s interval
+  const IDLE_POLL_INTERVAL_MS = 5000;
 
   const testInboxes = computed(() =>
     inboxes.value.filter(
@@ -41,6 +43,13 @@ export function useAiBrainTestLab() {
     inboxes.value.find(inbox => inbox.id === selectedInboxId.value)
   );
 
+  const stopIdlePolling = () => {
+    if (idlePollTimer) {
+      clearTimeout(idlePollTimer);
+      idlePollTimer = null;
+    }
+  };
+
   const stopPolling = () => {
     if (pollTimer) {
       clearTimeout(pollTimer);
@@ -50,7 +59,10 @@ export function useAiBrainTestLab() {
     isAiThinking.value = false;
   };
 
-  onUnmounted(stopPolling);
+  onUnmounted(() => {
+    stopPolling();
+    stopIdlePolling();
+  });
 
   const fetchInboxes = async () => {
     loadingInboxes.value = true;
@@ -140,11 +152,61 @@ export function useAiBrainTestLab() {
     }
   };
 
+  const syncConversationSnapshot = data => {
+    currentConversation.value = data;
+    const updatedIndex = conversations.value.findIndex(c => c.id === data.id);
+    if (updatedIndex !== -1) {
+      conversations.value[updatedIndex] = {
+        ...conversations.value[updatedIndex],
+        status: data.status,
+        aiBrain: data.aiBrain,
+        lastActivityAt: data.lastActivityAt,
+        lastMessage: data.lastMessage,
+      };
+    }
+  };
+
+  // Keeps the active conversation synced with proactive backend updates
+  // (e.g. inactivity nudges and auto-close events).
+  const scheduleIdlePoll = conversationId => {
+    stopIdlePolling();
+    if (!conversationId || selectedConversationId.value !== conversationId) {
+      return;
+    }
+
+    idlePollTimer = setTimeout(async () => {
+      idlePollTimer = null;
+      if (selectedConversationId.value !== conversationId) return;
+      if (
+        isAiThinking.value ||
+        sendingMessage.value ||
+        loadingCurrentConversation.value
+      ) {
+        scheduleIdlePoll(conversationId);
+        return;
+      }
+
+      try {
+        const response = await testConversationsAPI.show(conversationId);
+        if (selectedConversationId.value === conversationId) {
+          syncConversationSnapshot(response.data);
+        }
+      } catch (err) {
+        // Ignore transient network errors during background sync
+      } finally {
+        if (selectedConversationId.value === conversationId) {
+          scheduleIdlePoll(conversationId);
+        }
+      }
+    }, IDLE_POLL_INTERVAL_MS);
+  };
+
   const pollConversationUntilAiReplies = (
     conversationId,
     previousMessageCount
   ) => {
     stopPolling();
+    stopIdlePolling();
     isAiThinking.value = true;
 
     const check = async () => {
@@ -154,19 +216,7 @@ export function useAiBrainTestLab() {
         const data = response.data;
 
         if (selectedConversationId.value === conversationId) {
-          currentConversation.value = data;
-          const updatedIndex = conversations.value.findIndex(
-            c => c.id === conversationId
-          );
-          if (updatedIndex !== -1) {
-            conversations.value[updatedIndex] = {
-              ...conversations.value[updatedIndex],
-              status: data.status,
-              aiBrain: data.aiBrain,
-              lastActivityAt: data.lastActivityAt,
-              lastMessage: data.lastMessage,
-            };
-          }
+          syncConversationSnapshot(data);
         }
 
         const messagesCount = data.messages?.length || 0;
@@ -174,17 +224,20 @@ export function useAiBrainTestLab() {
         const botReplied =
           messagesCount > previousMessageCount &&
           lastMessage &&
-          lastMessage.role !== 'client';
+          lastMessage.role !== 'client' &&
+          lastMessage.role !== 'activity';
         const notWaiting = !data.awaitingAi;
 
         if (botReplied || notWaiting || pollAttempts >= MAX_POLL_ATTEMPTS) {
           stopPolling();
+          scheduleIdlePoll(conversationId);
           return;
         }
 
         pollTimer = setTimeout(check, 1500);
       } catch (err) {
         stopPolling();
+        scheduleIdlePoll(conversationId);
       }
     };
 
@@ -199,6 +252,7 @@ export function useAiBrainTestLab() {
       return;
     }
     stopPolling();
+    stopIdlePolling();
     selectedConversationId.value = conversationId;
     if (!conversationId) {
       currentConversation.value = null;
@@ -213,6 +267,8 @@ export function useAiBrainTestLab() {
           conversationId,
           currentConversation.value.messages?.length || 0
         );
+      } else {
+        scheduleIdlePoll(conversationId);
       }
     } catch (error) {
       currentConversation.value = null;
@@ -274,6 +330,8 @@ export function useAiBrainTestLab() {
           selectedConversationId.value,
           prevCount + 1
         );
+      } else {
+        scheduleIdlePoll(selectedConversationId.value);
       }
     } catch (error) {
       const message = error.response?.data?.error || t('AI_BRAIN.ERROR');
@@ -316,6 +374,7 @@ export function useAiBrainTestLab() {
 
   watch(selectedInboxId, () => {
     stopPolling();
+    stopIdlePolling();
     selectedConversationId.value = null;
     currentConversation.value = null;
     fetchConversations();
