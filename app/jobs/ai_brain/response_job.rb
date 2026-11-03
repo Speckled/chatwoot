@@ -106,6 +106,9 @@ class AiBrain::ResponseJob < ApplicationJob
   end
 
   def deliver_and_confirm(conversation, message, result, client)
+    # A receptionist can take over while the agent is running; the backend then discards the reply.
+    return if result['textToSend'].blank?
+
     session_id = result['sessionId']
     outgoing_id = result['outgoingMessageId']
     sent_message = send_message(conversation, result.fetch('textToSend'), message.id, outgoing_id)
