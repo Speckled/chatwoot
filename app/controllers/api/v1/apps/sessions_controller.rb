@@ -43,11 +43,15 @@ class Api::V1::Apps::SessionsController < ApplicationController
 
       if outcome.in?(['4', 'SessionClosed'])
         conversation.ai_brain_conversation&.reset_to_bot!
-        conversation.resolved! unless conversation.resolved?
+        Current.executed_by = AiBrain::BotSender.for(conversation.account)
+        # Same save as waiting_since, so the status change still dispatches and sends the CSAT survey.
+        conversation.update!(status: :resolved, waiting_since: nil) unless conversation.resolved?
       end
     end
 
     render json: { success: true, chatwootMessageId: sent_message&.id }, status: :ok
+  ensure
+    Current.executed_by = nil
   end
 
   private

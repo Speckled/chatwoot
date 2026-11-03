@@ -10,6 +10,8 @@ class AiBrain::ResponseJob < ApplicationJob
   rescue AiBrain::Client::UnavailableError => e
     Rails.logger.warn("AI Brain unavailable for message #{message_id}: #{e.message}")
     unavailable_handoff(conversation) if conversation
+  ensure
+    Current.executed_by = nil
   end
 
   private
@@ -102,7 +104,11 @@ class AiBrain::ResponseJob < ApplicationJob
     # Reset first so the next message starts a new session even if delivery fails.
     state.reset_to_bot!
     deliver_and_confirm(conversation, message, result, client)
-    conversation.resolved!
+    # Attributes the resolve activity to the bot; it is read when the surrounding lock transaction commits.
+    Current.executed_by = AiBrain::BotSender.for(conversation.account)
+    # Clear waiting_since in the same save: otherwise the farewell's commit callback saves the conversation
+    # first and its status change (which sends the CSAT survey) never reaches the commit callbacks.
+    conversation.update!(status: :resolved, waiting_since: nil)
   end
 
   def deliver_and_confirm(conversation, message, result, client)
