@@ -74,6 +74,8 @@ class AiBrain::ResponseJob < ApplicationJob
       request_review(conversation, message, state, result, client)
     when '2', 'Handoff'
       human_handoff(conversation, message, state, result, client)
+    when '4', 'SessionClosed'
+      close_session(conversation, message, state, result, client)
     else
       handoff(conversation, I18n.t('ai_brain.errors.unknown_outcome'))
     end
@@ -94,6 +96,13 @@ class AiBrain::ResponseJob < ApplicationJob
     state.update!(state: 'human', review_id: nil, source_message_id: nil)
     deliver_and_confirm(conversation, message, result, client)
     handoff(conversation, I18n.t('ai_brain.handoff_note', reason: result['reason']))
+  end
+
+  def close_session(conversation, message, state, result, client)
+    # Reset first so the next message starts a new session even if delivery fails.
+    state.reset_to_bot!
+    deliver_and_confirm(conversation, message, result, client)
+    conversation.resolved!
   end
 
   def deliver_and_confirm(conversation, message, result, client)
