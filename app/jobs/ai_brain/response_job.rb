@@ -22,6 +22,7 @@ class AiBrain::ResponseJob < ApplicationJob
     client = AiBrain::Client.new
     status, result = client.send_session_message(
       session_id: state.session_id,
+      client_id: state.client_id,
       phone_number: phone_number_for(conversation),
       conversation_id: conversation.id,
       message_id: message.id,

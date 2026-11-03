@@ -23,14 +23,15 @@ class AiBrain::Client
     request(:delete, path)
   end
 
-  def send_session_message(session_id:, phone_number:, conversation_id:, message_id:, contact_id: nil)
+  def send_session_message(session_id:, phone_number:, conversation_id:, message_id:, contact_id: nil, client_id: nil)
     post('sessions/messages', {
       sessionId: session_id,
+      clientId: client_id,
       phoneNumber: phone_number,
       chatwootConversationId: conversation_id,
       chatwootMessageId: message_id,
       chatwootContactId: contact_id
-    })
+    }.compact)
   end
 
   def confirm_delivery(session_id:, outgoing_message_id:, chatwoot_message_id: nil, status: 1, error_reason: nil)

@@ -59,16 +59,26 @@ class Api::V1::Accounts::AiBrain::ConversationsController < Api::V1::Accounts::A
     result = client.post("reviews/#{state.review_id}/resolve", operatorId: Current.user.id, approved: true, editedReplyText: text)
     return render_upstream(result) unless result.first == 200
 
-    send_validated_reply(conversation, state.review_id, result.last.fetch('textToSend'))
+    reply = result.last
+    sent_message = send_validated_reply(conversation, state.review_id, reply)
+    confirmation = client.confirm_delivery(session_id: reply.fetch('sessionId'),
+                                           outgoing_message_id: reply.fetch('outgoingMessageId'),
+                                           chatwoot_message_id: sent_message.id)
+    return render_upstream(confirmation) unless confirmation.first == 200
+
     state.update!(state: 'bot', review_id: nil, source_message_id: nil)
     conversation.pending! if conversation.open? && conversation.inbox.ai_brain_active?
     render json: { state: 'bot' }
   end
 
-  def send_validated_reply(conversation, review_id, text)
-    return if conversation.messages.exists?(["additional_attributes ->> 'ai_brain_review_id' = ?", review_id])
+  def send_validated_reply(conversation, review_id, reply)
+    existing = conversation.messages.find_by(["additional_attributes ->> 'ai_brain_review_id' = ?", review_id])
+    return existing if existing
 
     conversation.messages.create!(account: Current.account, inbox: conversation.inbox, message_type: :outgoing,
-                                  content: text, sender: Current.user, additional_attributes: { ai_brain_review_id: review_id })
+                                  content: reply.fetch('textToSend'), sender: Current.user,
+                                  additional_attributes: { ai_brain_review_id: review_id,
+                                                           ai_brain_session_id: reply.fetch('sessionId'),
+                                                           ai_brain_outgoing_id: reply.fetch('outgoingMessageId') })
   end
 end
