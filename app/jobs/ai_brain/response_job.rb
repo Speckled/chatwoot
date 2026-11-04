@@ -116,45 +116,10 @@ class AiBrain::ResponseJob < ApplicationJob
     return if result['textToSend'].blank?
 
     session_id = result['sessionId']
-    outgoing_id = result['outgoingMessageId']
-    sent_message = send_message(conversation, result.fetch('textToSend'), message.id, outgoing_id, content_type)
-    return unless session_id.present? && outgoing_id.present?
-
-    client.confirm_delivery(
-      session_id: session_id,
-      outgoing_message_id: outgoing_id,
-      chatwoot_message_id: sent_message.id,
-      status: 1
-    )
-  rescue StandardError => e
-    if session_id.present? && outgoing_id.present?
-      begin
-        client.confirm_delivery(
-          session_id: session_id,
-          outgoing_message_id: outgoing_id,
-          status: 2,
-          error_reason: e.message
-        )
-      rescue StandardError
-        nil
-      end
-    end
-    raise
-  end
-
-  def send_message(conversation, text, source_id, outgoing_id = nil, content_type = :text)
-    conversation.messages.create!(
-      account: conversation.account,
-      inbox: conversation.inbox,
-      message_type: :outgoing,
-      content: text,
-      content_type: content_type,
-      sender: AiBrain::BotSender.for(conversation.account),
-      additional_attributes: {
-        ai_brain_message_id: source_id.to_s,
-        ai_brain_outgoing_id: outgoing_id.to_s.presence
-      }.compact
-    )
+    delivery = AiBrain::Delivery.new(conversation: conversation, client: client, source_message_id: message.id, session_id: session_id)
+    delivery.deliver!(result.fetch('textToSend'), result['outgoingMessageId'], content_type: content_type)
+    follow_ups = result['followUpMessages']
+    AiBrain::FollowUpJob.schedule(conversation.id, message.id, session_id, follow_ups) if follow_ups.present?
   end
 
   def handoff(conversation, text)
