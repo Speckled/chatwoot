@@ -1,8 +1,4 @@
-class Api::V1::Apps::SessionsController < ApplicationController
-  skip_before_action :authenticate_user!, raise: false
-  skip_before_action :set_current_user
-  before_action :verify_api_key!
-
+class Api::V1::Apps::SessionsController < Api::V1::Apps::BaseController
   def outbound
     conversation = find_conversation
     return render json: { error: 'Conversation not found' }, status: :not_found unless conversation
@@ -55,14 +51,6 @@ class Api::V1::Apps::SessionsController < ApplicationController
   end
 
   private
-
-  def verify_api_key!
-    expected = ENV.fetch('AI_BRAIN_API_KEY', '').to_s
-    supplied = request.headers['X-Api-Key'].to_s
-    return if expected.present? && ActiveSupport::SecurityUtils.secure_compare(expected, supplied)
-
-    render json: { error: 'Unauthorized' }, status: :unauthorized
-  end
 
   def find_conversation
     by_session = AiBrainConversation.find_by(session_id: params[:session_id])&.conversation if params[:session_id].present?

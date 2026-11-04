@@ -48,6 +48,8 @@ Rails.application.routes.draw do
   namespace :api, defaults: { format: 'json' } do
     namespace :v1 do
       post 'apps/:app_id/sessions/:session_id/messages/outbound', to: 'apps/sessions#outbound'
+      get 'apps/:app_id/attachments/:id/file', to: 'apps/attachments#file'
+      put 'apps/:app_id/attachments/:id/transcription', to: 'apps/attachments#transcription'
 
       # ----------------------------------
       # start of account scoped api routes
