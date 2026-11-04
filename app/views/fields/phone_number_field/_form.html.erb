@@ -1,0 +1,46 @@
+<% dial_code, national_number = field.dial_code_and_national_number %>
+<div class="field-unit__label">
+  <%= f.label field.attribute %>
+</div>
+<div class="field-unit__field" data-phone-field>
+  <div class="flex gap-2">
+    <select class="w-28" data-phone-country aria-label="Country">
+      <% PhoneNumberField::COUNTRIES.each do |flag, name, code| %>
+        <option value="<%= code %>" title="<%= name %>" <%= 'selected' if code == dial_code %>><%= flag %> +<%= code %></option>
+      <% end %>
+    </select>
+    <input class="flex-1" type="tel" inputmode="numeric" data-phone-national value="<%= national_number %>" placeholder="(51) 99999-9999">
+  </div>
+  <%= f.hidden_field field.attribute, data: { phone_value: true } %>
+</div>
+
+<% content_for :javascript do %>
+  <script>
+    $(function () {
+      // Brazil: (DD) 99999-9999 for mobiles, (DD) 9999-9999 for landlines. Other countries take the digits as typed.
+      var format = function (dialCode, digits) {
+        if (dialCode !== '55') return digits;
+        if (digits.length <= 2) return digits.length ? '(' + digits : '';
+        var area = '(' + digits.slice(0, 2) + ') ';
+        var rest = digits.slice(2);
+        var split = rest.length > 8 ? 5 : 4;
+        return rest.length > split ? area + rest.slice(0, split) + '-' + rest.slice(split) : area + rest;
+      };
+
+      $('[data-phone-field]').each(function () {
+        var $country = $(this).find('[data-phone-country]');
+        var $national = $(this).find('[data-phone-national]');
+        var $value = $(this).find('[data-phone-value]');
+        var sync = function () {
+          var dialCode = $country.val();
+          var digits = $national.val().replace(/\D/g, '').slice(0, dialCode === '55' ? 11 : 15);
+          $national.val(format(dialCode, digits));
+          $value.val(digits ? '+' + dialCode + digits : '');
+        };
+        $country.on('change', sync);
+        $national.on('input', sync);
+        sync();
+      });
+    });
+  </script>
+<% end %>

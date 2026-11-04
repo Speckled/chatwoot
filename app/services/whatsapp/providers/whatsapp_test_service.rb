@@ -10,6 +10,10 @@ class Whatsapp::Providers::WhatsappTestService < Whatsapp::Providers::BaseServic
     fake_message_id
   end
 
+  def send_text(_phone_number, _text)
+    fake_message_id
+  end
+
   def sync_templates
     whatsapp_channel.mark_message_templates_updated
   end

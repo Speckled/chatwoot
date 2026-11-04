@@ -50,6 +50,7 @@ Rails.application.routes.draw do
       post 'apps/:app_id/sessions/:session_id/messages/outbound', to: 'apps/sessions#outbound'
       get 'apps/:app_id/attachments/:id/file', to: 'apps/attachments#file'
       put 'apps/:app_id/attachments/:id/transcription', to: 'apps/attachments#transcription'
+      post 'apps/:app_id/owners/:user_id/users', to: 'apps/owners#create_user'
 
       # ----------------------------------
       # start of account scoped api routes
@@ -815,6 +816,7 @@ Rails.application.routes.draw do
       resources :agent_bots, only: [:index, :new, :create, :show, :edit, :update, :destroy] do
         delete :avatar, on: :member, action: :destroy_avatar
       end
+      resources :ai_brain_owners, only: [:index, :new, :create, :show, :edit, :update, :destroy]
       resources :platform_apps, only: [:index, :new, :create, :show, :edit, :update, :destroy]
       resources :platform_banners
       resource :instance_status, only: [:show]

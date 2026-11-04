@@ -1,0 +1,2 @@
+<%# Links by id: a super admin is a User subclass, which the polymorphic link would route to a missing super_admin page. %>
+<%= link_to field.display_associated_resource, super_admin_user_path(field.data) if field.data %>

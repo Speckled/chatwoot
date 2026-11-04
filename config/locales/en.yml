@@ -30,6 +30,17 @@
 # available at https://guides.rubyonrails.org/i18n.html.
 
 en:
+  activerecord:
+    models:
+      ai_brain_owner:
+        one: AI Brain owner
+        other: AI Brain owners
+    errors:
+      models:
+        ai_brain_owner:
+          attributes:
+            user:
+              not_administrator: must be an administrator of the selected account
   ai_brain:
     review_note: "AI Brain review requested. Proposed reply: %{reply}. Reason: %{reason}"
     handoff_note: "AI Brain handed this conversation to reception. Reason: %{reason}"
@@ -44,6 +55,8 @@ en:
       invalid_sender_role: "Sender role must be 'client' or 'secretary'."
       contact_required: "Select a contact or enter a phone number."
       whatsapp_inbox_required: "Select a WhatsApp inbox."
+    owner:
+      unavailable: "Sorry, I can't handle your message right now. Please try again in a few minutes."
   hello: 'Hello world'
   inbox:
     reauthorization:

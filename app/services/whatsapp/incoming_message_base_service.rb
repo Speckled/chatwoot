@@ -37,6 +37,7 @@ class Whatsapp::IncomingMessageBaseService
     # processing the same message simultaneously.
     return if find_message_by_source_id(messages_data.first[:id])
     return unless lock_message_source_id!
+    return if forward_owner_message
 
     set_contact
     return unless @contact
@@ -46,6 +47,21 @@ class Whatsapp::IncomingMessageBaseService
       set_conversation
       create_messages
     end
+  end
+
+  # The clinic owner's private assistant: no contact, conversation or message is created for these messages.
+  def forward_owner_message
+    return false if outgoing_echo || !inbox.ai_brain_active?
+
+    message = messages_data.first
+    owner = AiBrainOwner.for_sender(inbox.account, message[:from])
+    return false unless owner
+
+    AiBrain::OwnerMessageJob.perform_later(inbox.id, owner.id, message[:from], {
+      'id' => message[:id], 'type' => message[:type], 'text' => message.dig(:text, :body),
+      'audio_id' => message.dig(:audio, :id), 'mime_type' => message.dig(:audio, :mime_type)
+    }.compact)
+    true
   end
 
   def process_statuses

@@ -1,0 +1,22 @@
+<%= render 'administrate/application/form', page: page %>
+
+<% content_for :javascript do %>
+  <script>
+    $(function () {
+      // Only administrators of the selected account can be its owner.
+      var $account = $('#ai_brain_owner_account_id');
+      var $user = $('#ai_brain_owner_user_id');
+      var filterUsers = function () {
+        var accountId = $account.val();
+        $user.find('option[data-account-ids]').each(function () {
+          var allowed = !!accountId && String($(this).data('accountIds')).split(',').indexOf(accountId) !== -1;
+          $(this).prop('hidden', !allowed).prop('disabled', !allowed);
+        });
+        if ($user.find('option:selected').prop('disabled')) $user.val('');
+        $user.prop('disabled', !accountId);
+      };
+      $account.on('change', filterUsers);
+      filterUsers();
+    });
+  </script>
+<% end %>

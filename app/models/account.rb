@@ -66,6 +66,7 @@ class Account < ApplicationRecord
   has_many :agent_bot_inboxes, dependent: :destroy_async
   has_many :ai_brain_inboxes, dependent: :destroy_async
   has_many :ai_brain_conversations, dependent: :destroy_async
+  has_many :ai_brain_owners, dependent: :destroy_async
   has_many :agent_bots, dependent: :destroy_async
   has_many :api_channels, dependent: :destroy_async, class_name: '::Channel::Api'
   has_many :articles, dependent: :destroy_async, class_name: '::Article'
