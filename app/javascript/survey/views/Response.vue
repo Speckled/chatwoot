@@ -1,6 +1,5 @@
 <script>
 import { useAlert } from 'dashboard/composables';
-import Branding from 'shared/components/Branding.vue';
 import Spinner from 'shared/components/Spinner.vue';
 import Rating from 'survey/components/Rating.vue';
 import Feedback from 'survey/components/Feedback.vue';
@@ -11,10 +10,15 @@ import { getSurveyDetails, updateSurvey } from 'survey/api/survey';
 
 import { CSAT_DISPLAY_TYPES } from 'shared/constants/messages';
 
+// Shown at the foot of the survey in place of Chatwoot's "Powered by" branding.
+const SURVEY_BRAND_LOGO = {
+  src: '/brand-assets/lrb-tech-logo.png',
+  alt: 'LRB Tech',
+};
+
 export default {
   name: 'Response',
   components: {
-    Branding,
     Rating,
     Spinner,
     Banner,
@@ -23,7 +27,7 @@ export default {
   },
   setup() {
     const { formatMessage } = useMessageFormatter();
-    return { formatMessage };
+    return { formatMessage, brandLogo: SURVEY_BRAND_LOGO };
   },
   data() {
     return {
@@ -213,8 +217,8 @@ export default {
           @send-feedback="sendFeedback"
         />
       </div>
-      <div class="mb-3">
-        <Branding />
+      <div class="flex justify-center px-12 pb-6">
+        <img :src="brandLogo.src" :alt="brandLogo.alt" class="w-auto h-12" />
       </div>
     </div>
   </div>

@@ -31,16 +31,15 @@ export default {
     };
   },
   computed: {
+    // The comment is optional: the rating alone can be submitted.
     isSubmitDisabled() {
-      return (
-        this.isButtonDisabled || !this.selectedRating || !this.feedback.trim()
-      );
+      return this.isButtonDisabled || !this.selectedRating;
     },
   },
   methods: {
     onClick() {
       if (this.isSubmitDisabled) return;
-      this.$emit('sendFeedback', this.feedback);
+      this.$emit('sendFeedback', this.feedback.trim());
     },
   },
 };
