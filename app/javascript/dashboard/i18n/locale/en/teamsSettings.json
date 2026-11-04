@@ -118,6 +118,9 @@
       "AUTO_ASSIGN": {
         "LABEL": "Allow auto assign for this team."
       },
+      "REQUIRES_CALENDAR": {
+        "LABEL": "Members need a calendar (AI Brain books patients with them)."
+      },
       "SUBMIT_CREATE": "Create team"
     }
   }

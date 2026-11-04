@@ -118,6 +118,9 @@
       "AUTO_ASSIGN": {
         "LABEL": "Permitir atribuição automática para este time."
       },
+      "REQUIRES_CALENDAR": {
+        "LABEL": "Membros precisam de agenda (o AI Brain agenda pacientes com eles)."
+      },
       "SUBMIT_CREATE": "Criar novo time"
     }
   }

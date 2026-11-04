@@ -30,6 +30,20 @@ class ServicesAPI extends ApiClient {
       { userId: userId || null }
     );
   }
+
+  createCalendar(userId, summary) {
+    return axios.post(`${this.baseUrl()}/ai_brain/calendars`, {
+      userId,
+      summary,
+    });
+  }
+
+  updateUser(chatwootUserId, data) {
+    return axios.patch(
+      `${this.baseUrl()}/ai_brain/users/${chatwootUserId}`,
+      data
+    );
+  }
 }
 
 export default new ServicesAPI();

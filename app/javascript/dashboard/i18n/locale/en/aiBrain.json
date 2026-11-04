@@ -81,12 +81,12 @@
     "LINKED_DOCTOR": "Linked doctor (Médicos)",
     "DOCTOR_LINKED": "Doctor linked successfully.",
     "NO_DOCTOR": "None",
-    "LINKED_USERS": "Users with linked calendar (Médicos)",
+    "LINKED_USERS": "Professionals with a calendar",
     "EMAIL": "Email",
     "LINKED_CALENDAR": "Linked calendar",
     "CALENDAR_LINKED": "Calendar linked successfully.",
     "NO_CALENDAR": "None",
-    "NO_USERS_FOUND": "No users found in the Médicos team.",
+    "NO_USERS_FOUND": "No one belongs to a team that needs a calendar. Turn it on for a team in Settings → Teams.",
     "NO_CALENDARS_AVAILABLE": "No calendars available.",
     "MODEL_CONFIG": "Model & tone configuration",
     "SESSION_SETTINGS": "Session & onboarding settings",
@@ -131,6 +131,12 @@
     "CLIENT_ID": "Client ID",
     "NO_CONVERSATION_SELECTED": "Select or start a conversation to begin testing",
     "NO_MESSAGES": "No messages yet in this conversation",
-    "SYSTEM_NOTE": "Internal note"
+    "SYSTEM_NOTE": "Internal note",
+    "TEAMS": "Teams",
+    "WHATSAPP_NUMBER": "WhatsApp",
+    "DISPLAY_NAME": "Display name",
+    "EDIT_PROFESSIONAL": "Edit professional",
+    "CREATE_CALENDAR": "Create a new calendar",
+    "EMAIL_CONFIRMATION_SENT": "A confirmation was sent to the new email; it is used once confirmed."
   }
 }

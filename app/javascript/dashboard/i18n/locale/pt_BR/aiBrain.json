@@ -81,12 +81,12 @@
     "LINKED_DOCTOR": "Médico(a) vinculado(a) (Médicos)",
     "DOCTOR_LINKED": "Médico(a) vinculado(a) com sucesso.",
     "NO_DOCTOR": "Nenhum(a)",
-    "LINKED_USERS": "Usuários com agenda vinculada (Médicos)",
+    "LINKED_USERS": "Profissionais com agenda",
     "EMAIL": "E-mail",
     "LINKED_CALENDAR": "Calendário vinculado",
     "CALENDAR_LINKED": "Calendário vinculado com sucesso.",
     "NO_CALENDAR": "Nenhum(a)",
-    "NO_USERS_FOUND": "Nenhum usuário da equipe Médicos encontrado.",
+    "NO_USERS_FOUND": "Ninguém faz parte de um time que precisa de agenda. Ative isso em Configurações → Times.",
     "NO_CALENDARS_AVAILABLE": "Nenhum calendário disponível.",
     "MODEL_CONFIG": "Configuração de modelo e tom",
     "SESSION_SETTINGS": "Configurações de sessão e cadastro",
@@ -131,6 +131,12 @@
     "CLIENT_ID": "ID do Cliente",
     "NO_CONVERSATION_SELECTED": "Selecione ou inicie uma conversa para começar a testar",
     "NO_MESSAGES": "Nenhuma mensagem nesta conversa ainda",
-    "SYSTEM_NOTE": "Nota interna"
+    "SYSTEM_NOTE": "Nota interna",
+    "TEAMS": "Times",
+    "WHATSAPP_NUMBER": "WhatsApp",
+    "DISPLAY_NAME": "Nome de exibição",
+    "EDIT_PROFESSIONAL": "Editar profissional",
+    "CREATE_CALENDAR": "Criar nova agenda",
+    "EMAIL_CONFIRMATION_SENT": "Enviamos uma confirmação para o novo e-mail; ele passa a valer depois de confirmado."
   }
 }

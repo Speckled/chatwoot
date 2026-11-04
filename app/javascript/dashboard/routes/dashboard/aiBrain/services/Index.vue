@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
 import SettingsLayout from '../../settings/SettingsLayout.vue';
@@ -7,24 +7,38 @@ import BaseSettingsHeader from '../../settings/components/BaseSettingsHeader.vue
 import SectionLayout from '../../settings/account/components/SectionLayout.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
+import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
+import NextInput from 'dashboard/components-next/input/Input.vue';
+import WithLabel from 'v3/components/Form/WithLabel.vue';
 import servicesAPI from 'dashboard/api/aiBrain/services';
+
+// The calendar dropdown's choice for "create a new calendar for this person".
+const NEW_CALENDAR = '__new__';
 
 const { t } = useI18n();
 const status = ref(null);
 const calendars = ref([]);
-const doctors = ref([]);
-const linkingUserId = ref(null);
+const professionals = ref([]);
 const showCalendars = ref(false);
 const busy = ref(false);
+const editorRef = ref(null);
+const editing = ref(null);
+const saving = ref(false);
+const form = reactive({
+  displayName: '',
+  email: '',
+  whatsAppNumber: '',
+  calendarId: '',
+});
 
 const load = async () => {
   try {
     const [serviceRes, usersRes] = await Promise.all([
       servicesAPI.get(),
-      servicesAPI.getUsers({ team: 'Médicos' }),
+      servicesAPI.getUsers({ calendar: true }),
     ]);
     status.value = serviceRes.data[0];
-    doctors.value = usersRes.data || [];
+    professionals.value = usersRes.data || [];
     calendars.value = status.value?.availableCalendars || [];
     if (status.value?.isConnected && status.value?.isValid) {
       calendars.value = (await servicesAPI.getCalendars()).data;
@@ -34,23 +48,67 @@ const load = async () => {
   }
 };
 
-const onUserCalendarChange = async (user, event) => {
-  const selectedCalendarId = event.target.value || null;
-  const targetCalendarId = selectedCalendarId || user.linkedCalendarId;
-  if (!targetCalendarId) return;
+const calendarName = calendarId =>
+  calendars.value.find(calendar => calendar.id === calendarId)?.summary ||
+  calendarId ||
+  t('AI_BRAIN.NO_CALENDAR');
 
-  linkingUserId.value = user.id;
-  try {
-    await servicesAPI.linkCalendarUser(
-      targetCalendarId,
-      selectedCalendarId ? user.id : null
+const canCreateCalendar = computed(
+  () => status.value?.isConnected && status.value?.isValid
+);
+
+const openEditor = professional => {
+  editing.value = professional;
+  Object.assign(form, {
+    displayName: professional.displayName || professional.name,
+    email: professional.email || '',
+    whatsAppNumber: professional.whatsAppNumber || '',
+    calendarId: professional.linkedCalendarId || '',
+  });
+  editorRef.value?.open();
+};
+
+const saveCalendar = async professional => {
+  if (form.calendarId === NEW_CALENDAR) {
+    await servicesAPI.createCalendar(
+      professional.id,
+      form.displayName || professional.name
     );
-    useAlert(t('AI_BRAIN.CALENDAR_LINKED'));
+    return;
+  }
+  if (form.calendarId === (professional.linkedCalendarId || '')) return;
+
+  // Unlinking addresses the calendar that was linked; linking moves the chosen one to this person.
+  await servicesAPI.linkCalendarUser(
+    form.calendarId || professional.linkedCalendarId,
+    form.calendarId ? professional.id : null
+  );
+};
+
+const saveEditor = async () => {
+  const professional = editing.value;
+  saving.value = true;
+  try {
+    const { data } = await servicesAPI.updateUser(
+      professional.chatwootUserId,
+      {
+        displayName: form.displayName,
+        email: form.email,
+        whatsAppNumber: form.whatsAppNumber,
+      }
+    );
+    await saveCalendar(professional);
+    useAlert(
+      data.unconfirmedEmail
+        ? t('AI_BRAIN.EMAIL_CONFIRMATION_SENT')
+        : t('AI_BRAIN.SAVED')
+    );
+    editorRef.value?.close();
     await load();
   } catch (error) {
-    useAlert(t('AI_BRAIN.ERROR'));
+    useAlert(error?.response?.data?.error || t('AI_BRAIN.ERROR'));
   } finally {
-    linkingUserId.value = null;
+    saving.value = false;
   }
 };
 
@@ -92,57 +150,49 @@ const disconnect = async () => {
         <SectionLayout :title="t('AI_BRAIN.LINKED_USERS')" class="!pt-0">
           <div class="w-full">
             <table
-              v-if="doctors.length"
+              v-if="professionals.length"
               class="min-w-full table-auto divide-y divide-n-weak"
             >
               <thead>
                 <tr class="border-t border-n-weak">
                   <th
+                    v-for="column in [
+                      'NAME',
+                      'TEAMS',
+                      'WHATSAPP_NUMBER',
+                      'EMAIL',
+                      'LINKED_CALENDAR',
+                    ]"
+                    :key="column"
                     class="py-3 ltr:pr-4 rtl:pl-4 text-start text-sm font-medium text-n-slate-12"
                   >
-                    {{ t('AI_BRAIN.NAME') }}
-                  </th>
-                  <th
-                    class="py-3 ltr:pr-4 rtl:pl-4 text-start text-sm font-medium text-n-slate-12"
-                  >
-                    {{ t('AI_BRAIN.EMAIL') }}
-                  </th>
-                  <th
-                    class="py-3 ltr:pr-4 rtl:pl-4 text-start text-sm font-medium text-n-slate-12"
-                  >
-                    {{ t('AI_BRAIN.LINKED_CALENDAR') }}
+                    {{ t(`AI_BRAIN.${column}`) }}
                   </th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-n-weak text-n-slate-11">
-                <tr v-for="doc in doctors" :key="doc.id">
+                <tr
+                  v-for="professional in professionals"
+                  :key="professional.id"
+                  class="cursor-pointer hover:bg-n-alpha-1"
+                  @click="openEditor(professional)"
+                >
                   <td
                     class="py-3 ltr:pr-4 rtl:pl-4 text-sm text-n-slate-12 font-medium"
                   >
-                    {{ doc.displayName || doc.name }}
+                    {{ professional.displayName || professional.name }}
                   </td>
-                  <td class="py-3 ltr:pr-4 rtl:pl-4 text-sm text-n-slate-11">
-                    {{ doc.email || '-' }}
+                  <td class="py-3 ltr:pr-4 rtl:pl-4 text-sm">
+                    {{ professional.teams.join(', ') }}
+                  </td>
+                  <td class="py-3 ltr:pr-4 rtl:pl-4 text-sm">
+                    {{ professional.whatsAppNumber || '-' }}
+                  </td>
+                  <td class="py-3 ltr:pr-4 rtl:pl-4 text-sm">
+                    {{ professional.email || '-' }}
                   </td>
                   <td class="py-3 ltr:pr-4 rtl:pl-4 text-sm text-n-slate-12">
-                    <select
-                      :disabled="linkingUserId === doc.id || !calendars.length"
-                      :value="doc.linkedCalendarId || ''"
-                      class="w-full max-w-md text-sm rounded-lg border border-n-weak bg-n-solid-1 text-n-slate-12 px-2.5 py-1.5 focus:border-n-brand focus:outline-none"
-                      @change="onUserCalendarChange(doc, $event)"
-                    >
-                      <option value="">{{ t('AI_BRAIN.NO_CALENDAR') }}</option>
-                      <option
-                        v-for="cal in calendars"
-                        :key="cal.id"
-                        :value="cal.id"
-                      >
-                        {{ cal.summary
-                        }}{{
-                          cal.isPrimary ? ` (${t('AI_BRAIN.PRIMARY')})` : ''
-                        }}
-                      </option>
-                    </select>
+                    {{ calendarName(professional.linkedCalendarId) }}
                   </td>
                 </tr>
               </tbody>
@@ -151,6 +201,60 @@ const disconnect = async () => {
               {{ t('AI_BRAIN.NO_USERS_FOUND') }}
             </p>
           </div>
+          <Dialog
+            ref="editorRef"
+            :title="t('AI_BRAIN.EDIT_PROFESSIONAL')"
+            :confirm-button-label="t('AI_BRAIN.SAVE')"
+            :cancel-button-label="t('AI_BRAIN.CANCEL')"
+            :is-loading="saving"
+            @confirm="saveEditor"
+          >
+            <div class="flex flex-col gap-4">
+              <WithLabel
+                :label="t('AI_BRAIN.DISPLAY_NAME')"
+                name="displayName"
+              >
+                <NextInput v-model="form.displayName" class="w-full" />
+              </WithLabel>
+              <WithLabel :label="t('AI_BRAIN.EMAIL')" name="email">
+                <NextInput v-model="form.email" type="email" class="w-full" />
+              </WithLabel>
+              <WithLabel
+                :label="t('AI_BRAIN.WHATSAPP_NUMBER')"
+                name="whatsAppNumber"
+              >
+                <NextInput
+                  v-model="form.whatsAppNumber"
+                  class="w-full"
+                  placeholder="+5551999990000"
+                />
+              </WithLabel>
+              <WithLabel
+                :label="t('AI_BRAIN.LINKED_CALENDAR')"
+                name="calendar"
+              >
+                <select
+                  v-model="form.calendarId"
+                  class="w-full text-sm rounded-lg border border-n-weak bg-n-solid-1 text-n-slate-12 px-2.5 py-1.5 focus:border-n-brand focus:outline-none"
+                >
+                  <option value="">{{ t('AI_BRAIN.NO_CALENDAR') }}</option>
+                  <option
+                    v-for="calendar in calendars"
+                    :key="calendar.id"
+                    :value="calendar.id"
+                  >
+                    {{ calendar.summary
+                    }}{{
+                      calendar.isPrimary ? ` (${t('AI_BRAIN.PRIMARY')})` : ''
+                    }}
+                  </option>
+                  <option v-if="canCreateCalendar" :value="NEW_CALENDAR">
+                    {{ t('AI_BRAIN.CREATE_CALENDAR') }}
+                  </option>
+                </select>
+              </WithLabel>
+            </div>
+          </Dialog>
         </SectionLayout>
 
         <SectionLayout
