@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
 import { useAlert } from 'dashboard/composables';
 import SettingsLayout from '../../settings/SettingsLayout.vue';
 import BaseSettingsHeader from '../../settings/components/BaseSettingsHeader.vue';
@@ -19,6 +20,24 @@ const GOOGLE_CALENDAR = 'google-calendar';
 const GOOGLE_DRIVE = 'google-drive';
 
 const { t } = useI18n();
+const route = useRoute();
+const router = useRouter();
+// Query keys the backend's OAuth callback appends to this page's URL, with the service each one reports on.
+const CONNECTION_QUERY_KEYS = {
+  calendarConnection: () => t('AI_BRAIN.GOOGLE_CALENDAR'),
+  googleDriveConnection: () => t('AI_BRAIN.GOOGLE_DRIVE'),
+};
+// The failure statuses the callback can report, with their explanations.
+const CONNECTION_ERRORS = {
+  reconnection_required: () =>
+    t('AI_BRAIN.CONNECTION_ERRORS.RECONNECTION_REQUIRED'),
+  authorization_failed: () =>
+    t('AI_BRAIN.CONNECTION_ERRORS.AUTHORIZATION_FAILED'),
+  configuration_error: () =>
+    t('AI_BRAIN.CONNECTION_ERRORS.CONFIGURATION_ERROR'),
+  provider_error: () => t('AI_BRAIN.CONNECTION_ERRORS.PROVIDER_ERROR'),
+  persistence_error: () => t('AI_BRAIN.CONNECTION_ERRORS.PERSISTENCE_ERROR'),
+};
 // Service statuses keyed by the backend's service name, such as GoogleCalendar.
 const statuses = ref({});
 const status = computed(() => statuses.value.GoogleCalendar);
@@ -121,7 +140,32 @@ const saveEditor = async () => {
   }
 };
 
-onMounted(load);
+// Reports the result the OAuth callback put in the URL, then drops it so a reload does not repeat it.
+const reportConnectionResult = () => {
+  const query = { ...route.query };
+  Object.entries(CONNECTION_QUERY_KEYS).forEach(([key, serviceName]) => {
+    const result = query[key];
+    if (!result) return;
+    delete query[key];
+    const service = serviceName();
+    if (result === 'connected') {
+      useAlert(t('AI_BRAIN.SERVICE_CONNECTED', { service }));
+      return;
+    }
+    const reason = Object.hasOwn(CONNECTION_ERRORS, result)
+      ? CONNECTION_ERRORS[result]()
+      : t('AI_BRAIN.CONNECTION_ERRORS.UNKNOWN');
+    useAlert(t('AI_BRAIN.CONNECTION_FAILED', { service, reason }));
+  });
+  if (Object.keys(query).length !== Object.keys(route.query).length) {
+    router.replace({ query });
+  }
+};
+
+onMounted(() => {
+  reportConnectionResult();
+  return load();
+});
 
 const connect = async service => {
   busyService.value = service;

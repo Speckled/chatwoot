@@ -80,6 +80,16 @@
     "RECONNECT": "Reconectar",
     "DISCONNECT": "Desconectar",
     "CONFIRM_DISCONNECT": "Desconectar o {service}?",
+    "SERVICE_CONNECTED": "{service} conectado.",
+    "CONNECTION_FAILED": "Não foi possível conectar o {service}: {reason}",
+    "CONNECTION_ERRORS": {
+      "RECONNECTION_REQUIRED": "O Google não concedeu o acesso solicitado. Conecte de novo e permita o acesso.",
+      "AUTHORIZATION_FAILED": "O Google rejeitou a autorização. Tente de novo.",
+      "CONFIGURATION_ERROR": "A integração com o Google não está configurada no servidor.",
+      "PROVIDER_ERROR": "Não foi possível acessar o Google. Tente de novo mais tarde.",
+      "PERSISTENCE_ERROR": "Não foi possível salvar a conexão. Tente de novo.",
+      "UNKNOWN": "Erro desconhecido."
+    },
     "LINKED_DOCTOR": "Médico(a) vinculado(a) (Médicos)",
     "DOCTOR_LINKED": "Médico(a) vinculado(a) com sucesso.",
     "NO_DOCTOR": "Nenhum(a)",

@@ -80,6 +80,16 @@
     "RECONNECT": "Reconnect",
     "DISCONNECT": "Disconnect",
     "CONFIRM_DISCONNECT": "Disconnect {service}?",
+    "SERVICE_CONNECTED": "{service} connected.",
+    "CONNECTION_FAILED": "{service} could not be connected: {reason}",
+    "CONNECTION_ERRORS": {
+      "RECONNECTION_REQUIRED": "Google did not grant the requested access. Connect again and allow it.",
+      "AUTHORIZATION_FAILED": "Google rejected the authorization. Try again.",
+      "CONFIGURATION_ERROR": "The Google integration is not configured on the server.",
+      "PROVIDER_ERROR": "Google could not be reached. Try again later.",
+      "PERSISTENCE_ERROR": "The connection could not be saved. Try again.",
+      "UNKNOWN": "Unknown error."
+    },
     "LINKED_DOCTOR": "Linked doctor (Médicos)",
     "DOCTOR_LINKED": "Doctor linked successfully.",
     "NO_DOCTOR": "None",
