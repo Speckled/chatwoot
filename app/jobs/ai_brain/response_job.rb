@@ -31,7 +31,7 @@ class AiBrain::ResponseJob < ApplicationJob
       contact_id: conversation.contact_id
     )
     if status != 200
-      handoff(conversation, "AI Brain: #{result&.dig('error') || "HTTP #{status}"}")
+      error_handoff(conversation, "AI Brain: #{result&.dig('error') || "HTTP #{status}"}")
       return
     end
 
@@ -64,7 +64,7 @@ class AiBrain::ResponseJob < ApplicationJob
 
   def unavailable_handoff(conversation)
     conversation.with_lock do
-      handoff(conversation, I18n.t('ai_brain.errors.unavailable')) if conversation.pending?
+      error_handoff(conversation, I18n.t('ai_brain.errors.unavailable')) if conversation.pending?
     end
   end
 
@@ -79,7 +79,7 @@ class AiBrain::ResponseJob < ApplicationJob
     when '4', 'SessionClosed'
       close_session(conversation, message, state, result, client)
     else
-      handoff(conversation, I18n.t('ai_brain.errors.unknown_outcome'))
+      error_handoff(conversation, I18n.t('ai_brain.errors.unknown_outcome'))
     end
   end
 
@@ -162,5 +162,11 @@ class AiBrain::ResponseJob < ApplicationJob
     conversation.messages.create!(account: conversation.account, inbox: conversation.inbox, message_type: :outgoing,
                                   private: true, content: text)
     conversation.bot_handoff!
+  end
+
+  # Unlike the backend's own handoff outcomes, a failed turn leaves the backend session with the bot.
+  def error_handoff(conversation, text)
+    handoff(conversation, text)
+    AiBrain::SessionHandoffJob.perform_later(conversation.id, text)
   end
 end
