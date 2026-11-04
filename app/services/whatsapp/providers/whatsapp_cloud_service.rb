@@ -1,4 +1,6 @@
 class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseService
+  include Whatsapp::Providers::WhatsappCloudCsatSurvey
+
   def send_message(phone_number, message)
     @message = message
 
@@ -6,8 +8,8 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
       send_attachment_message(phone_number, message)
     elsif message.content_type == 'input_select'
       send_interactive_text_message(phone_number, message)
-    elsif message.content_type == 'input_csat' && whatsapp_channel.inbox.csat_config['whatsapp_flow'].present?
-      send_csat_flow_message(phone_number, message)
+    elsif message.content_type == 'input_csat'
+      send_csat_survey_message(phone_number, message)
     else
       send_text_message(phone_number, message)
     end
@@ -269,20 +271,6 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
         **recipient_params(phone_number),
         interactive: payload,
         type: 'interactive'
-      }.to_json
-    )
-
-    process_response(response, message)
-  end
-
-  # The patient's answers come back as an nfm_reply, recorded by Whatsapp::CsatFlowService.
-  def send_csat_flow_message(phone_number, message)
-    response = HTTParty.post(
-      "#{phone_id_path('v24.0')}/messages",
-      headers: api_headers,
-      body: {
-        messaging_product: 'whatsapp', **recipient_params(phone_number), type: 'interactive',
-        interactive: Whatsapp::CsatFlowService.interactive_payload(message)
       }.to_json
     )
 

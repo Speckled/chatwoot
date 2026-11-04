@@ -1,6 +1,7 @@
-# The CSAT survey sent as the inbox's WhatsApp Flow (see docs/whatsapp_csat_flow.md): the interactive message that opens
-# it, and the patient's submission. Like the web survey, a submission updates the conversation's survey message instead
-# of creating a message: an incoming message would reopen the resolved conversation and hand it back to the bot.
+# Records a CSAT survey submitted through the inbox's WhatsApp Flow (see docs/whatsapp_csat_flow.md), and owns the
+# flow token that ties it to its conversation. Like the web survey, a submission updates the conversation's survey
+# message instead of creating a message: an incoming message would reopen the resolved conversation and hand it back
+# to the bot.
 class Whatsapp::CsatFlowService
   TOKEN_PREFIX = 'csat:'.freeze
   # Same window as Public::Api::V1::CsatSurveyController.
@@ -10,24 +11,6 @@ class Whatsapp::CsatFlowService
 
   def self.flow_token(conversation)
     "#{TOKEN_PREFIX}#{conversation.uuid}"
-  end
-
-  def self.interactive_payload(message)
-    csat_config = message.inbox.csat_config
-    {
-      type: 'flow',
-      body: { text: message.content },
-      action: {
-        name: 'flow',
-        parameters: {
-          flow_message_version: '3',
-          flow_token: flow_token(message.conversation),
-          flow_id: csat_config['whatsapp_flow']['flow_id'],
-          flow_cta: csat_config['button_text'],
-          flow_action: 'navigate'
-        }
-      }
-    }
   end
 
   # True when the Flow response is a CSAT submission, recorded or not; other Flow responses are left to the caller.

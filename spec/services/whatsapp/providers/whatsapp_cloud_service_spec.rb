@@ -285,8 +285,27 @@ describe Whatsapp::Providers::WhatsappCloudService do
     end
   end
 
-  describe '#send_message for a CSAT survey with a WhatsApp Flow' do
-    it 'sends the survey as the inbox Flow' do
+  describe '#send_message for a CSAT survey' do
+    it 'sends the survey link as a button labelled with the CSAT button text' do
+      whatsapp_channel.inbox.update!(csat_config: { 'button_text' => 'Avaliar atendimento' })
+      survey_message = create(:message, conversation: conversation, inbox: whatsapp_channel.inbox, message_type: :template,
+                                        content_type: :input_csat, content: 'Muito obrigado pelo contato!')
+      stub_request(:post, 'https://graph.facebook.com/v24.0/123456789/messages')
+        .with(
+          body: {
+            messaging_product: 'whatsapp', to: '+123456789', type: 'interactive',
+            interactive: {
+              type: 'cta_url',
+              body: { text: 'Muito obrigado pelo contato!' },
+              action: { name: 'cta_url', parameters: { display_text: 'Avaliar atendimento', url: conversation.csat_survey_link } }
+            }
+          }.to_json
+        ).to_return(status: 200, body: whatsapp_response.to_json, headers: response_headers)
+
+      expect(service.send_message('+123456789', survey_message)).to eq 'message_id'
+    end
+
+    it 'sends the survey as the inbox Flow when one is attached' do
       whatsapp_channel.inbox.update!(csat_config: { 'button_text' => 'Avaliar', 'whatsapp_flow' => { 'flow_id' => '987654321' } })
       survey_message = create(:message, conversation: conversation, inbox: whatsapp_channel.inbox, message_type: :template,
                                         content_type: :input_csat, content: 'Como foi seu atendimento?')
