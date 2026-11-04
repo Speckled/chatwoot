@@ -4,7 +4,12 @@ class CsatSurveyService
   def perform
     return unless should_send_csat_survey?
 
-    if whatsapp_channel? && template_available_and_approved?
+    # The WhatsApp Cloud provider sends this survey message as the inbox's Flow.
+    if whatsapp_flow.present? && within_messaging_window?
+      ::MessageTemplates::Template::CsatSurvey.new(conversation: conversation).perform
+    elsif whatsapp_flow_template_approved?
+      send_whatsapp_flow_template_survey
+    elsif whatsapp_channel? && template_available_and_approved?
       send_whatsapp_template_survey
     elsif inbox.twilio_whatsapp? && twilio_template_available_and_approved?
       send_twilio_whatsapp_template_survey
@@ -74,12 +79,24 @@ class CsatSurveyService
     inbox.channel_type == 'Channel::Whatsapp'
   end
 
+  # Set by the whatsapp:csat_flow rake task.
+  def whatsapp_flow
+    csat_config['whatsapp_flow']
+  end
+
   def template_available_and_approved?
     template_config = inbox.csat_config&.dig('template')
     return false unless template_config
 
-    template_name = template_config['name'] || CsatTemplateNameService.csat_template_name(inbox.id)
+    whatsapp_template_approved?(template_config['name'] || CsatTemplateNameService.csat_template_name(inbox.id))
+  end
 
+  def whatsapp_flow_template_approved?
+    template_name = whatsapp_flow&.dig('template_name')
+    template_name.present? && whatsapp_template_approved?(template_name)
+  end
+
+  def whatsapp_template_approved?(template_name)
     status_result = inbox.channel.provider_service.get_template_status(template_name)
 
     status_result[:success] && status_result[:template][:status] == 'APPROVED'
@@ -108,8 +125,26 @@ class CsatSurveyService
     template_config = inbox.csat_config&.dig('template')
     template_name = template_config['name'] || CsatTemplateNameService.csat_template_name(inbox.id)
 
+    send_whatsapp_csat_template(build_template_info(template_name, template_config))
+  end
+
+  def send_whatsapp_flow_template_survey
+    send_whatsapp_csat_template(
+      name: whatsapp_flow['template_name'],
+      lang_code: whatsapp_flow['template_language'],
+      parameters: [
+        {
+          type: 'button',
+          sub_type: 'flow',
+          index: '0',
+          parameters: [{ type: 'action', action: { flow_token: Whatsapp::CsatFlowResponseService.flow_token(conversation) } }]
+        }
+      ]
+    )
+  end
+
+  def send_whatsapp_csat_template(template_info)
     phone_number = conversation.contact_inbox.source_id
-    template_info = build_template_info(template_name, template_config)
     message = build_csat_message
 
     message_id = inbox.channel.provider_service.send_template(phone_number, template_info, message)

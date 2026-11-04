@@ -42,6 +42,7 @@ class Whatsapp::IncomingMessageBaseService
     set_contact
     return unless @contact
     return if @contact.blocked? && !outgoing_echo
+    return if csat_flow_response_recorded?
 
     ActiveRecord::Base.transaction do
       set_conversation
@@ -62,6 +63,15 @@ class Whatsapp::IncomingMessageBaseService
       'audio_id' => message.dig(:audio, :id), 'mime_type' => message.dig(:audio, :mime_type)
     }.compact)
     true
+  end
+
+  def csat_flow_response_recorded?
+    flow_reply = messages_data.first.dig(:interactive, :nfm_reply)
+    return false if outgoing_echo || flow_reply.blank?
+
+    Whatsapp::CsatFlowResponseService.new(
+      inbox: inbox, contact: @contact, flow_response: parse_flow_response_json(flow_reply[:response_json])
+    ).perform
   end
 
   def process_statuses

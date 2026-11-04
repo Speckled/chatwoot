@@ -188,6 +188,27 @@ describe Whatsapp::IncomingMessageWhatsappCloudService do
           )
         end
       end
+
+      context 'when the response is a CSAT survey sent as a Flow' do
+        let(:contact) { create(:contact, account: whatsapp_channel.inbox.account) }
+        let(:contact_inbox) { create(:contact_inbox, contact: contact, inbox: whatsapp_channel.inbox, source_id: '2423423243') }
+        let(:conversation) do
+          create(:conversation, inbox: whatsapp_channel.inbox, contact: contact, contact_inbox: contact_inbox, status: :resolved)
+        end
+        let!(:survey_message) do
+          create(:message, conversation: conversation, inbox: whatsapp_channel.inbox, message_type: :template, content_type: :input_csat)
+        end
+        let(:response_json) { { flow_token: "csat:#{conversation.uuid}", rating: '5', comment: 'Great' }.to_json }
+
+        it 'records the survey without creating a message or reopening the conversation' do
+          expect do
+            described_class.new(inbox: whatsapp_channel.inbox, params: flow_response_params).perform
+          end.not_to change(Message, :count)
+
+          expect(survey_message.reload.submitted_values['csat_survey_response']).to eq('rating' => 5, 'feedback_message' => 'Great')
+          expect(conversation.reload).to be_resolved
+        end
+      end
     end
 
     context 'when invalid attachment message params' do

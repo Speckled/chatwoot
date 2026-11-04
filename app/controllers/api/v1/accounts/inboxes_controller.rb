@@ -152,6 +152,8 @@ class Api::V1::Accounts::InboxesController < Api::V1::Accounts::BaseController
       'language' => config['language'] || 'en'
     }
     format_template_config(config, formatted)
+    # Set by the whatsapp:csat_flow rake task, not by the settings page, so keep it across settings saves.
+    formatted['whatsapp_flow'] = @inbox.csat_config['whatsapp_flow'] if @inbox.csat_config['whatsapp_flow'].present?
     formatted
   end
 

@@ -1253,6 +1253,18 @@ RSpec.describe 'Inboxes API', type: :request do
         expect(config['message']).to eq('Updated message')
         expect(config['template']).to be_nil # Template should be removed when not provided
       end
+
+      it 'keeps the WhatsApp Flow attached by the rake task' do
+        inbox.update!(csat_config: { 'whatsapp_flow' => { 'flow_id' => '987654321' } })
+
+        patch "/api/v1/accounts/#{account.id}/inboxes/#{inbox.id}",
+              params: { csat_survey_enabled: true, csat_config: csat_config },
+              headers: admin.create_new_auth_token,
+              as: :json
+
+        expect(response).to have_http_status(:success)
+        expect(inbox.reload.csat_config['whatsapp_flow']).to eq('flow_id' => '987654321')
+      end
     end
   end
 

@@ -348,6 +348,64 @@ describe CsatSurveyService do
           expect(whatsapp_conversation.messages.where(content_type: :input_csat)).to be_empty
         end
       end
+
+      context 'when a WhatsApp Flow is attached' do
+        before do
+          whatsapp_inbox.update(csat_config: {
+                                  'message' => 'Rate us',
+                                  'whatsapp_flow' => { 'flow_id' => '987654321', 'template_name' => 'csat_flow_pt', 'template_language' => 'pt_BR' }
+                                })
+        end
+
+        it 'sends the survey message, which goes out as the Flow, inside the messaging window' do
+          whatsapp_service.perform
+
+          expect(MessageTemplates::Template::CsatSurvey).to have_received(:new).with(conversation: whatsapp_conversation)
+          expect(csat_template).to have_received(:perform)
+        end
+
+        it 'sends the approved Flow template outside the messaging window' do
+          allow(whatsapp_conversation).to receive(:can_reply?).and_return(false)
+          allow(mock_provider_service).to receive(:get_template_status)
+            .with('csat_flow_pt')
+            .and_return({ success: true, template: { status: 'APPROVED' } })
+          mock_successful_template_send('flow_template_message_id')
+
+          whatsapp_service.perform
+
+          expect(mock_provider_service).to have_received(:send_template).with(
+            '1234567890',
+            {
+              name: 'csat_flow_pt',
+              lang_code: 'pt_BR',
+              parameters: [
+                {
+                  type: 'button',
+                  sub_type: 'flow',
+                  index: '0',
+                  parameters: [{ type: 'action', action: { flow_token: "csat:#{whatsapp_conversation.uuid}" } }]
+                }
+              ]
+            },
+            instance_of(Message)
+          )
+          expect(whatsapp_conversation.messages.find_by(content_type: :input_csat).source_id).to eq('flow_template_message_id')
+        end
+
+        it 'reports the survey as not sent outside the window while the Flow template is not approved' do
+          allow(whatsapp_conversation).to receive(:can_reply?).and_return(false)
+          allow(mock_provider_service).to receive(:get_template_status)
+            .with('csat_flow_pt')
+            .and_return({ success: true, template: { status: 'PENDING' } })
+
+          whatsapp_service.perform
+
+          expect(Conversations::ActivityMessageJob).to have_received(:perform_later).with(
+            whatsapp_conversation,
+            hash_including(content: I18n.t('conversations.activity.csat.not_sent_due_to_messaging_window'))
+          )
+        end
+      end
     end
   end
 
