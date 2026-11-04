@@ -92,7 +92,7 @@
     "SESSION_SETTINGS": "Configurações de sessão e cadastro",
     "INACTIVITY_NUDGE": "Mensagem de aviso de inatividade",
     "INACTIVITY_CLOSE": "Mensagem de encerramento por inatividade",
-    "HUMAN_TIMEOUT_HOURS": "Tempo limite de atendimento humano (horas)",
+    "HUMAN_TIMEOUT_MINUTES": "Tempo limite de atendimento humano (minutos)",
     "REQUIRED_ONBOARDING": "Campos obrigatórios de cadastro",
     "OPTIONAL_ONBOARDING": "Campos opcionais de cadastro",
     "END_SESSION": "Encerrar atendimento humano e retomar o bot",

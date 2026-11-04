@@ -92,7 +92,7 @@
     "SESSION_SETTINGS": "Session & onboarding settings",
     "INACTIVITY_NUDGE": "Inactivity nudge message",
     "INACTIVITY_CLOSE": "Inactivity close message",
-    "HUMAN_TIMEOUT_HOURS": "Human handoff timeout (hours)",
+    "HUMAN_TIMEOUT_MINUTES": "Human handoff timeout (minutes)",
     "REQUIRED_ONBOARDING": "Required onboarding fields",
     "OPTIONAL_ONBOARDING": "Optional onboarding fields",
     "END_SESSION": "End human session and resume bot",

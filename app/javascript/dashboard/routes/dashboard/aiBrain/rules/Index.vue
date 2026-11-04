@@ -41,7 +41,7 @@ const load = async () => {
       tone: '',
       inactivityNudgeMinutes: 5,
       inactivityAutoCloseMinutes: 10,
-      otherSessionInactivityHours: 24,
+      otherSessionInactivityMinutes: 30,
       requiredOnboardingFields: ['Name'],
       optionalOnboardingFields: ['Email'],
       ...ruleResponse.data,
@@ -217,11 +217,11 @@ const removeFaq = async faq => {
                 />
               </WithLabel>
               <WithLabel
-                name="handoff-hours"
-                :label="t('AI_BRAIN.HUMAN_TIMEOUT_HOURS')"
+                name="handoff-minutes"
+                :label="t('AI_BRAIN.HUMAN_TIMEOUT_MINUTES')"
               >
                 <NextInput
-                  v-model.number="rules.otherSessionInactivityHours"
+                  v-model.number="rules.otherSessionInactivityMinutes"
                   type="number"
                   min="1"
                   class="w-full"
