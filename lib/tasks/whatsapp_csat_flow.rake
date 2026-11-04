@@ -2,17 +2,21 @@
 module WhatsappCsatFlowTasks
   def self.attach(args)
     inbox = Inbox.find(args[:inbox_id])
-    abort 'Error: the inbox is not a WhatsApp Cloud inbox' unless inbox.whatsapp? && %w[whatsapp_cloud test].include?(inbox.channel.provider)
-    abort 'Error: FLOW_ID is required' if args[:flow_id].blank?
-    abort 'Error: TEMPLATE_LANGUAGE is required with TEMPLATE_NAME' if args[:template_name].present? && args[:template_language].blank?
-    # The Flow message's button shows the CSAT button text.
-    abort "Error: save the inbox's Customer Satisfaction settings first" if inbox.csat_config['button_text'].blank?
+    check_arguments(inbox, args)
     # Test inboxes never talk to Meta.
     check_meta_setup(inbox, args) if inbox.channel.provider == 'whatsapp_cloud'
 
     flow_config = { 'flow_id' => args[:flow_id], 'template_name' => args[:template_name], 'template_language' => args[:template_language] }
     inbox.update!(csat_config: inbox.csat_config.merge('whatsapp_flow' => flow_config.compact_blank))
     puts "✓ Inbox #{inbox.id} sends its CSAT survey as Flow #{args[:flow_id]}"
+  end
+
+  def self.check_arguments(inbox, args)
+    abort 'Error: the inbox is not a WhatsApp Cloud inbox' unless inbox.whatsapp? && %w[whatsapp_cloud test].include?(inbox.channel.provider)
+    abort 'Error: FLOW_ID is required' if args[:flow_id].blank?
+    abort 'Error: TEMPLATE_LANGUAGE is required with TEMPLATE_NAME' if args[:template_name].present? && args[:template_language].blank?
+    # The Flow message's button shows the CSAT button text.
+    abort "Error: save the inbox's Customer Satisfaction settings first" if inbox.csat_config['button_text'].blank?
   end
 
   def self.check_meta_setup(inbox, args)

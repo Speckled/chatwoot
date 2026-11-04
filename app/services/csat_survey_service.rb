@@ -4,12 +4,9 @@ class CsatSurveyService
   def perform
     return unless should_send_csat_survey?
 
-    # The WhatsApp Cloud provider sends this survey message as the inbox's Flow.
-    if whatsapp_flow.present? && within_messaging_window?
-      ::MessageTemplates::Template::CsatSurvey.new(conversation: conversation).perform
-    elsif whatsapp_flow_template_approved?
+    if whatsapp_flow_template_survey?
       send_whatsapp_flow_template_survey
-    elsif whatsapp_channel? && template_available_and_approved?
+    elsif whatsapp_template_survey?
       send_whatsapp_template_survey
     elsif inbox.twilio_whatsapp? && twilio_template_available_and_approved?
       send_twilio_whatsapp_template_survey
@@ -84,16 +81,25 @@ class CsatSurveyService
     csat_config['whatsapp_flow']
   end
 
+  # Inside the window, the regular survey message goes out and the WhatsApp Cloud provider sends it as the inbox's Flow.
+  def whatsapp_flow_in_window?
+    whatsapp_flow.present? && within_messaging_window?
+  end
+
+  def whatsapp_flow_template_survey?
+    template_name = whatsapp_flow&.dig('template_name')
+    template_name.present? && !within_messaging_window? && whatsapp_template_approved?(template_name)
+  end
+
+  def whatsapp_template_survey?
+    whatsapp_channel? && !whatsapp_flow_in_window? && template_available_and_approved?
+  end
+
   def template_available_and_approved?
     template_config = inbox.csat_config&.dig('template')
     return false unless template_config
 
     whatsapp_template_approved?(template_config['name'] || CsatTemplateNameService.csat_template_name(inbox.id))
-  end
-
-  def whatsapp_flow_template_approved?
-    template_name = whatsapp_flow&.dig('template_name')
-    template_name.present? && whatsapp_template_approved?(template_name)
   end
 
   def whatsapp_template_approved?(template_name)
@@ -137,7 +143,7 @@ class CsatSurveyService
           type: 'button',
           sub_type: 'flow',
           index: '0',
-          parameters: [{ type: 'action', action: { flow_token: Whatsapp::CsatFlowResponseService.flow_token(conversation) } }]
+          parameters: [{ type: 'action', action: { flow_token: Whatsapp::CsatFlowService.flow_token(conversation) } }]
         }
       ]
     )

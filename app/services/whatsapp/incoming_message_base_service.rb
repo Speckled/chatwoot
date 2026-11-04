@@ -41,8 +41,7 @@ class Whatsapp::IncomingMessageBaseService
 
     set_contact
     return unless @contact
-    return if @contact.blocked? && !outgoing_echo
-    return if csat_flow_response_recorded?
+    return if skip_contact_message?
 
     ActiveRecord::Base.transaction do
       set_conversation
@@ -65,11 +64,16 @@ class Whatsapp::IncomingMessageBaseService
     true
   end
 
+  # A blocked contact's message is dropped, and a CSAT Flow response is recorded on its survey instead of becoming a message.
+  def skip_contact_message?
+    (@contact.blocked? && !outgoing_echo) || csat_flow_response_recorded?
+  end
+
   def csat_flow_response_recorded?
     flow_reply = messages_data.first.dig(:interactive, :nfm_reply)
     return false if outgoing_echo || flow_reply.blank?
 
-    Whatsapp::CsatFlowResponseService.new(
+    Whatsapp::CsatFlowService.new(
       inbox: inbox, contact: @contact, flow_response: parse_flow_response_json(flow_reply[:response_json])
     ).perform
   end

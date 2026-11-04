@@ -12,7 +12,7 @@ The survey goes out when a conversation is resolved, as today: by an agent, or b
 
 The Flow is endpointless, so it needs no keys, server or extra URL. Its `flow_token` is `csat:<conversation uuid>`.
 
-When the patient submits, WhatsApp sends an `nfm_reply`, and `Whatsapp::CsatFlowResponseService` writes the answer to the conversation's survey message. No message is created, so the resolved conversation is not reopened and the bot does not reply. Submissions more than 14 days after the survey was sent are dropped, matching the web survey.
+When the patient submits, WhatsApp sends an `nfm_reply`, and `Whatsapp::CsatFlowService` writes the answer to the conversation's survey message. No message is created, so the resolved conversation is not reopened and the bot does not reply. Submissions more than 14 days after the survey was sent are dropped, matching the web survey.
 
 ## 1. Build the Flow in WhatsApp Manager
 

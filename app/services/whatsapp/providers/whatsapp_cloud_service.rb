@@ -6,7 +6,7 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
       send_attachment_message(phone_number, message)
     elsif message.content_type == 'input_select'
       send_interactive_text_message(phone_number, message)
-    elsif message.content_type == 'input_csat' && csat_whatsapp_flow.present?
+    elsif message.content_type == 'input_csat' && whatsapp_channel.inbox.csat_config['whatsapp_flow'].present?
       send_csat_flow_message(phone_number, message)
     else
       send_text_message(phone_number, message)
@@ -275,38 +275,18 @@ class Whatsapp::Providers::WhatsappCloudService < Whatsapp::Providers::BaseServi
     process_response(response, message)
   end
 
-  def csat_whatsapp_flow
-    whatsapp_channel.inbox.csat_config['whatsapp_flow']
-  end
-
-  # The patient's answers come back as an nfm_reply, recorded by Whatsapp::CsatFlowResponseService.
+  # The patient's answers come back as an nfm_reply, recorded by Whatsapp::CsatFlowService.
   def send_csat_flow_message(phone_number, message)
     response = HTTParty.post(
       "#{phone_id_path('v24.0')}/messages",
       headers: api_headers,
       body: {
-        messaging_product: 'whatsapp', **recipient_params(phone_number), type: 'interactive', interactive: csat_flow_payload(message)
+        messaging_product: 'whatsapp', **recipient_params(phone_number), type: 'interactive',
+        interactive: Whatsapp::CsatFlowService.interactive_payload(message)
       }.to_json
     )
 
     process_response(response, message)
-  end
-
-  def csat_flow_payload(message)
-    {
-      type: 'flow',
-      body: { text: message.content },
-      action: {
-        name: 'flow',
-        parameters: {
-          flow_message_version: '3',
-          flow_token: Whatsapp::CsatFlowResponseService.flow_token(message.conversation),
-          flow_id: csat_whatsapp_flow['flow_id'],
-          flow_cta: whatsapp_channel.inbox.csat_config['button_text'],
-          flow_action: 'navigate'
-        }
-      }
-    }
   end
 end
 

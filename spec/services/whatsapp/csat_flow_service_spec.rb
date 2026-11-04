@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe Whatsapp::CsatFlowResponseService do
+describe Whatsapp::CsatFlowService do
   let!(:whatsapp_channel) { create(:channel_whatsapp, provider: 'whatsapp_cloud', sync_templates: false, validate_provider_config: false) }
   let(:inbox) { whatsapp_channel.inbox }
   let(:contact) { create(:contact, account: inbox.account) }
