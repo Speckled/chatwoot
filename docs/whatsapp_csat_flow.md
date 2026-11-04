@@ -12,6 +12,8 @@ The survey goes out when a conversation is resolved, as today: by an agent, or b
 
 Without a Flow attached, a WhatsApp Cloud inbox still sends the in-window survey as a button rather than text with a raw URL: the CSAT message with a button that opens the web survey. The Flow and link buttons both show the CSAT button text, which Meta caps at 20 characters for these buttons, so keep it that short in the Customer Satisfaction settings.
 
+When the AI Brain closes a session, its closing message (the farewell, or the inactivity notice) is itself the survey message on these inboxes: the patient gets the closing text with the survey button under it, and no separate CSAT message follows. This only happens when resolving the conversation would send a survey anyway (CSAT on, no survey sent yet, survey rules allow it); otherwise the closing message is plain text. See `AiBrain::ClosingMessage`.
+
 The Flow is endpointless, so it needs no keys, server or extra URL. Its `flow_token` is `csat:<conversation uuid>`.
 
 When the patient submits, WhatsApp sends an `nfm_reply`, and `Whatsapp::CsatFlowService` writes the answer to the conversation's survey message. No message is created, so the resolved conversation is not reopened and the bot does not reply. Submissions more than 14 days after the survey was sent are dropped, matching the web survey.

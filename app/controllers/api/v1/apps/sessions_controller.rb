@@ -8,6 +8,7 @@ class Api::V1::Apps::SessionsController < Api::V1::Apps::BaseController
       text = params[:textToSend].to_s.strip
       outcome = params[:outcome].to_s
       outgoing_id = params[:outgoingMessageId]
+      closing = outcome.in?(['4', 'SessionClosed'])
 
       if text.present?
         sent_message = conversation.messages.create!(
@@ -15,6 +16,7 @@ class Api::V1::Apps::SessionsController < Api::V1::Apps::BaseController
           inbox: conversation.inbox,
           message_type: :outgoing,
           content: text,
+          content_type: closing ? AiBrain::ClosingMessage.content_type(conversation) : :text,
           sender: AiBrain::BotSender.for(conversation.account),
           additional_attributes: {
             ai_brain_session_id: params[:session_id].to_s,
@@ -37,7 +39,7 @@ class Api::V1::Apps::SessionsController < Api::V1::Apps::BaseController
         end
       end
 
-      if outcome.in?(['4', 'SessionClosed'])
+      if closing
         conversation.ai_brain_conversation&.reset_to_bot!
         Current.executed_by = AiBrain::BotSender.for(conversation.account)
         # Same save as waiting_since, so the status change still dispatches and sends the CSAT survey.

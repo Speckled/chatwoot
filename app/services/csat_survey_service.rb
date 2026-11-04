@@ -17,16 +17,17 @@ class CsatSurveyService
     end
   end
 
+  # Whether resolving the conversation would send it a survey; the AI Brain then sends its closing message as the survey.
+  def due?
+    !conversation.tweet? && csat_enabled? && !csat_already_sent? && csat_allowed_by_survey_rules?
+  end
+
   private
 
   delegate :inbox, :contact, to: :conversation
 
   def should_send_csat_survey?
-    conversation_allows_csat? && csat_enabled? && !csat_already_sent? && csat_allowed_by_survey_rules?
-  end
-
-  def conversation_allows_csat?
-    conversation.resolved? && !conversation.tweet?
+    conversation.resolved? && due?
   end
 
   def csat_enabled?

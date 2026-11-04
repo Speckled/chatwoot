@@ -103,7 +103,7 @@ class AiBrain::ResponseJob < ApplicationJob
   def close_session(conversation, message, state, result, client)
     # Reset first so the next message starts a new session even if delivery fails.
     state.reset_to_bot!
-    deliver_and_confirm(conversation, message, result, client)
+    deliver_and_confirm(conversation, message, result, client, content_type: AiBrain::ClosingMessage.content_type(conversation))
     # Attributes the resolve activity to the bot; it is read when the surrounding lock transaction commits.
     Current.executed_by = AiBrain::BotSender.for(conversation.account)
     # Clear waiting_since in the same save: otherwise the farewell's commit callback saves the conversation
@@ -111,13 +111,13 @@ class AiBrain::ResponseJob < ApplicationJob
     conversation.update!(status: :resolved, waiting_since: nil)
   end
 
-  def deliver_and_confirm(conversation, message, result, client)
+  def deliver_and_confirm(conversation, message, result, client, content_type: :text)
     # A receptionist can take over while the agent is running; the backend then discards the reply.
     return if result['textToSend'].blank?
 
     session_id = result['sessionId']
     outgoing_id = result['outgoingMessageId']
-    sent_message = send_message(conversation, result.fetch('textToSend'), message.id, outgoing_id)
+    sent_message = send_message(conversation, result.fetch('textToSend'), message.id, outgoing_id, content_type)
     return unless session_id.present? && outgoing_id.present?
 
     client.confirm_delivery(
@@ -142,12 +142,13 @@ class AiBrain::ResponseJob < ApplicationJob
     raise
   end
 
-  def send_message(conversation, text, source_id, outgoing_id = nil)
+  def send_message(conversation, text, source_id, outgoing_id = nil, content_type = :text)
     conversation.messages.create!(
       account: conversation.account,
       inbox: conversation.inbox,
       message_type: :outgoing,
       content: text,
+      content_type: content_type,
       sender: AiBrain::BotSender.for(conversation.account),
       additional_attributes: {
         ai_brain_message_id: source_id.to_s,
