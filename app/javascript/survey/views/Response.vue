@@ -12,7 +12,7 @@ import { CSAT_DISPLAY_TYPES } from 'shared/constants/messages';
 
 // Shown at the foot of the survey in place of Chatwoot's "Powered by" branding.
 const SURVEY_BRAND_LOGO = {
-  src: '/brand-assets/lrb-tech-logo.png',
+  src: '/brand-assets/lrb-tech-logo.webp',
   alt: 'LRB Tech',
 };
 
