@@ -66,8 +66,8 @@ Rails.application.routes.draw do
             resources :faqs, only: [:index, :show, :create, :update, :destroy]
             resources :services, only: [:index]
             resources :users, only: [:index, :update]
-            resource :google_calendar, only: [:destroy], controller: :google_calendar do
-              get :authorization_url
+            resources :google_services, only: [:destroy], param: :service, constraints: { service: /google-calendar|google-drive/ } do
+              get :authorization_url, on: :member
             end
             resources :calendars, only: [:index, :create], param: :calendar_id, constraints: { calendar_id: %r{[^/]+} } do
               put :user, on: :member
