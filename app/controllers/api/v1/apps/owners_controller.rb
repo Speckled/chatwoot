@@ -47,11 +47,31 @@ class Api::V1::Apps::OwnersController < Api::V1::Apps::BaseController
     render json: { userId: @user.id, removed: true }
   end
 
+  # Sends the owner a WhatsApp text the AI Brain starts on its own, such as the confirmation that an account got connected.
+  # Owner conversations never exist in Chatwoot, so it goes straight through the provider, like the assistant's replies.
+  def create_message
+    return render json: { error: 'text is required' }, status: :unprocessable_entity if params[:text].blank?
+
+    inbox = owner_inbox
+    return render json: { error: 'The account has no AI Brain WhatsApp inbox' }, status: :unprocessable_entity unless inbox
+
+    sent = inbox.channel.provider_service.send_text(@owner.phone_number.delete('+'), params[:text])
+    return render json: { error: 'WhatsApp did not accept the message' }, status: :bad_gateway unless sent
+
+    render json: { inboxId: inbox.id }
+  end
+
   private
 
   def fetch_owner
     @owner = AiBrainOwner.find_by(user_id: params[:user_id])
     render json: { error: 'Owner not found' }, status: :not_found unless @owner&.administrator?
+  end
+
+  # The inbox the owner wrote to when it is still one of the account's AI Brain WhatsApp inboxes, else the first of them.
+  def owner_inbox
+    inboxes = @owner.account.inboxes.where(channel_type: 'Channel::Whatsapp').order(:id).select(&:ai_brain_active?)
+    inboxes.find { |inbox| inbox.id == params[:inboxId].to_i } || inboxes.first
   end
 
   # The user being changed, who must belong to the owner's account.

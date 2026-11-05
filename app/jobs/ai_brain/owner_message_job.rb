@@ -4,6 +4,8 @@ class AiBrain::OwnerMessageJob < ApplicationJob
   # The backend is still running an earlier owner turn (409) or failed, or WhatsApp did not serve the voice note.
   class RetryableError < StandardError; end
 
+  FOLLOW_UP_DELAY_SECONDS = 1
+
   queue_as :medium
   self.log_arguments = false
 
@@ -21,6 +23,7 @@ class AiBrain::OwnerMessageJob < ApplicationJob
       ownerUserId: owner.user_id,
       phoneNumber: owner.phone_number,
       whatsAppMessageId: message['id'],
+      inboxId: inbox_id,
       messageType: message['type'].in?(%w[text audio]) ? message['type'] : 'other',
       text: message['text'],
       audio: message['type'] == 'audio' ? download_audio(message) : nil
@@ -29,6 +32,7 @@ class AiBrain::OwnerMessageJob < ApplicationJob
     raise RetryableError, "AI Brain HTTP #{status}" unless status == 200
 
     reply(result.fetch('textToSend'))
+    send_follow_ups(Array(result['followUps']))
   end
 
   def apologize
@@ -39,6 +43,15 @@ class AiBrain::OwnerMessageJob < ApplicationJob
 
   def reply(text)
     @inbox.channel.provider_service.send_text(@from, text)
+  end
+
+  # Texts the model never writes, such as a one-time connect link, each its own message after the reply. The pause keeps
+  # them in order on the owner's phone.
+  def send_follow_ups(texts)
+    texts.each do |text|
+      sleep(FOLLOW_UP_DELAY_SECONDS)
+      reply(text)
+    end
   end
 
   # Same lookup as Whatsapp::IncomingMessageWhatsappCloudService#download_attachment_file.

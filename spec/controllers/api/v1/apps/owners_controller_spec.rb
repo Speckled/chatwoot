@@ -60,4 +60,53 @@ RSpec.describe 'AI Brain owner user changes', type: :request do
     delete "#{base}/#{doctor.id}", headers: headers, as: :json
     expect(response).to have_http_status(:not_found)
   end
+
+  describe 'messages to the owner' do
+    let(:url) { "/api/v1/apps/chatwoot-main/owners/#{owner_user.id}/messages" }
+    let(:provider) { instance_double(Whatsapp::Providers::WhatsappTestService, send_text: 'wamid.sent') }
+    let(:first_channel) do
+      Channel::Whatsapp.create!(account: account, phone_number: '+5511999990001', provider: 'test', provider_config: { 'source' => 'ai_brain_test' })
+    end
+    let(:second_channel) do
+      Channel::Whatsapp.create!(account: account, phone_number: '+5511999990002', provider: 'test', provider_config: { 'source' => 'ai_brain_test' })
+    end
+    # Created before the provider is stubbed: creating a channel validates its provider config.
+    let!(:first_inbox) { create(:inbox, account: account, channel: first_channel) }
+    let!(:second_inbox) { create(:inbox, account: account, channel: second_channel) }
+
+    before do
+      allow(Whatsapp::Providers::WhatsappTestService).to receive(:new).and_return(provider)
+      AiBrainInbox.create!(account: account, inbox: first_inbox, active: true)
+      AiBrainInbox.create!(account: account, inbox: second_inbox, active: true)
+    end
+
+    it 'sends the text to the owner through the inbox they wrote to' do
+      post url, headers: headers, params: { text: '✅ Google Drive conectado.', inboxId: second_inbox.id }, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to eq('inboxId' => second_inbox.id)
+      expect(provider).to have_received(:send_text).with('5551995684103', '✅ Google Drive conectado.')
+    end
+
+    it 'uses the first AI Brain WhatsApp inbox when the given one is not one' do
+      AiBrainInbox.find_by(inbox: second_inbox).update!(active: false)
+
+      post url, headers: headers, params: { text: 'Oi', inboxId: second_inbox.id }, as: :json
+
+      expect(response.parsed_body).to eq('inboxId' => first_inbox.id)
+    end
+
+    it 'refuses a missing text, an account without an AI Brain WhatsApp inbox, and a message WhatsApp did not accept' do
+      post url, headers: headers, params: { text: ' ' }, as: :json
+      expect(response.parsed_body['error']).to eq('text is required')
+
+      allow(provider).to receive(:send_text).and_return(nil)
+      post url, headers: headers, params: { text: 'Oi' }, as: :json
+      expect(response).to have_http_status(:bad_gateway)
+
+      AiBrainInbox.where(account: account).find_each { |ai_inbox| ai_inbox.update!(active: false) }
+      post url, headers: headers, params: { text: 'Oi' }, as: :json
+      expect(response.parsed_body['error']).to eq('The account has no AI Brain WhatsApp inbox')
+    end
+  end
 end

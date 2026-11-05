@@ -53,6 +53,7 @@ Rails.application.routes.draw do
       post 'apps/:app_id/owners/:user_id/users', to: 'apps/owners#create_user'
       patch 'apps/:app_id/owners/:user_id/users/:chatwoot_user_id', to: 'apps/owners#update_user'
       delete 'apps/:app_id/owners/:user_id/users/:chatwoot_user_id', to: 'apps/owners#remove_user'
+      post 'apps/:app_id/owners/:user_id/messages', to: 'apps/owners#create_message'
       post 'apps/:app_id/inboxes/:inbox_id/messages', to: 'apps/inbox_messages#create'
 
       # ----------------------------------
