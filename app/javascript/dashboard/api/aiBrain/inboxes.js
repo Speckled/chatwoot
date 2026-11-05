@@ -13,6 +13,11 @@ class InboxesAPI extends ApiClient {
   unassign(id) {
     return this.delete(id);
   }
+
+  // The inbox's approved WhatsApp templates, with their body text and parameter count.
+  getTemplates(id) {
+    return axios.get(`${this.url}/${id}/templates`);
+  }
 }
 
 export default new InboxesAPI();

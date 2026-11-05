@@ -38,7 +38,20 @@ class Api::V1::Accounts::AiBrain::InboxesController < Api::V1::Accounts::AiBrain
     head :no_content
   end
 
+  # The inbox's approved WhatsApp templates. Outside the 24-hour window, WhatsApp delivers only these.
+  def templates
+    channel = Current.account.inboxes.find(params[:inbox_id]).channel
+    templates = channel.is_a?(Channel::Whatsapp) && channel.message_templates.is_a?(Array) ? channel.message_templates : []
+    render json: templates.select { |template| template['status'].to_s.casecmp?('approved') }.map { |template| template_payload(template) }
+  end
+
   private
+
+  def template_payload(template)
+    body = Array(template['components']).find { |component| component['type'].to_s.casecmp?('body') }&.dig('text').to_s
+    { name: template['name'], language: template['language'], category: template['category'], bodyText: body,
+      parameterCount: body.scan(/\{\{\s*([^}]+?)\s*\}\}/).flatten.uniq.size }
+  end
 
   def serialize_inbox(inbox)
     channel = inbox.channel

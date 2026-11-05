@@ -80,7 +80,17 @@ Rails.application.routes.draw do
             resources :calendars, only: [:index, :create], param: :calendar_id, constraints: { calendar_id: %r{[^/]+} } do
               put :user, on: :member
             end
-            resources :inboxes, only: [:index, :create, :update, :destroy], param: :inbox_id
+            resources :inboxes, only: [:index, :create, :update, :destroy], param: :inbox_id do
+              get :templates, on: :member
+            end
+            resources :reminders, only: [:index, :show, :create, :update, :destroy] do
+              get :placeholders, on: :collection
+              member do
+                put :enabled
+                get :deliveries
+                post :run_now
+              end
+            end
             resources :conversations, only: [:show], param: :conversation_id do
               post :end_session, on: :member
               post :validate_review, on: :member
