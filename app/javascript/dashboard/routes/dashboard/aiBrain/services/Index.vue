@@ -65,6 +65,8 @@ const form = reactive({
 // What the professional being edited changes from the clinic's services and prices, and the backend's problems with it.
 const termsForm = ref(null);
 const termsErrors = ref({});
+// The terms as loaded, so a save that leaves them alone does not send them again.
+const loadedTerms = ref('');
 
 const load = async () => {
   try {
@@ -103,12 +105,14 @@ const openEditor = async professional => {
     calendarId: professional.linkedCalendarId || '',
   });
   termsForm.value = null;
+  loadedTerms.value = '';
   termsErrors.value = {};
   editorRef.value?.open();
   try {
     const { clinic, professionals: terms } = (await serviceTermsAPI.get()).data;
     const own = terms.find(entry => entry.userId === professional.id)?.terms;
     termsForm.value = toOverrideForm(clinic, own || {});
+    loadedTerms.value = JSON.stringify(fromOverrideForm(termsForm.value));
   } catch (error) {
     useAlert(t('AI_BRAIN.ERROR'));
   }
@@ -136,12 +140,10 @@ const saveEditor = async () => {
   saving.value = true;
   termsErrors.value = {};
   try {
-    // Service terms go first: they are the likeliest to be rejected, and then nothing else is saved.
-    if (termsForm.value) {
-      await serviceTermsAPI.updateProfessional(
-        professional.id,
-        fromOverrideForm(termsForm.value)
-      );
+    // Changed service terms go first: they are the likeliest to be rejected, and then nothing else is saved.
+    const terms = termsForm.value && fromOverrideForm(termsForm.value);
+    if (terms && JSON.stringify(terms) !== loadedTerms.value) {
+      await serviceTermsAPI.updateProfessional(professional.id, terms);
     }
     const { data } = await servicesAPI.updateUser(
       professional.chatwootUserId,
