@@ -10,7 +10,7 @@ class AiBrainListener < BaseListener
   # before opening it.
   def conversation_opened(event)
     conversation = extract_conversation_and_account(event)[0]
-    return unless conversation.inbox.ai_brain_inbox
+    return unless ai_brain_session?(conversation)
 
     taken_over = conversation.with_lock do
       state = conversation.ai_brain_conversation || conversation.build_ai_brain_conversation(account: conversation.account)
@@ -23,7 +23,7 @@ class AiBrainListener < BaseListener
 
   def conversation_resolved(event)
     conversation = extract_conversation_and_account(event)[0]
-    return unless conversation.inbox.ai_brain_inbox
+    return unless ai_brain_session?(conversation)
 
     AiBrain::SessionEndJob.perform_later(conversation.id)
   end
@@ -32,6 +32,11 @@ class AiBrainListener < BaseListener
 
   def eligible?(message)
     message.incoming? && message.notifiable? && message.text? && message.inbox.ai_brain_active? && message.conversation.pending? &&
-      message.conversation.ai_brain_conversation&.state.in?([nil, 'bot'])
+      message.conversation.ai_brain_bot_owned?
+  end
+
+  # Conversations the AI Brain started to message staff never have an AI session.
+  def ai_brain_session?(conversation)
+    conversation.inbox.ai_brain_inbox.present? && !conversation.ai_brain_staff?
   end
 end

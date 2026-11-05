@@ -16,10 +16,11 @@ class Conversations::PermissionFilterService
 
   private
 
+  # Conversations the AI Brain started to message staff are for administrators only.
   def accessible_conversations
-    return hinted_accessible_conversations if @plan_hint_selective_filter
+    return hinted_accessible_conversations.without_ai_brain_staff if @plan_hint_selective_filter
 
-    conversations.where(inbox: user.inboxes.where(account_id: account.id))
+    conversations.where(inbox: user.inboxes.where(account_id: account.id)).without_ai_brain_staff
   end
 
   # Same rows as accessible_conversations. `inbox_id + 0` keeps the planner from

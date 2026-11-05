@@ -796,4 +796,32 @@ describe SearchService do
       end
     end
   end
+
+  describe 'a conversation the AI Brain started to message staff' do
+    let(:params) { { q: 'Potter' } }
+    let!(:staff_conversation) do
+      create(:conversation, contact: harry, inbox: inbox, account: account, additional_attributes: { 'ai_brain_audience' => 'staff' })
+    end
+    let!(:staff_message) do
+      create(:message, account: account, inbox: inbox, conversation: staff_conversation, content: 'Potter, sua agenda de amanhã')
+    end
+
+    it 'is left out of an agent search, with its messages' do
+      result = described_class.new(current_user: user, current_account: account, params: params, search_type: 'all').perform
+
+      expect(result[:conversations].map(&:id)).to include(conversation.id)
+      expect(result[:conversations].map(&:id)).not_to include(staff_conversation.id)
+      expect(result[:messages].map(&:id)).to include(message.id)
+      expect(result[:messages].map(&:id)).not_to include(staff_message.id)
+    end
+
+    it 'is found by administrators' do
+      admin = create(:user, account: account, role: :administrator)
+
+      result = described_class.new(current_user: admin, current_account: account, params: params, search_type: 'all').perform
+
+      expect(result[:conversations].map(&:id)).to include(staff_conversation.id)
+      expect(result[:messages].map(&:id)).to include(staff_message.id)
+    end
+  end
 end

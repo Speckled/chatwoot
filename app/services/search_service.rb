@@ -26,12 +26,20 @@ class SearchService
     @accessable_inbox_ids ||= @current_user.assigned_inboxes.pluck(:id)
   end
 
+  # Conversations the AI Brain started to message staff are for administrators only.
+  def hidden_conversation_ids
+    return [] if account_user&.administrator?
+
+    @hidden_conversation_ids ||= current_account.conversations.ai_brain_staff.pluck(:id)
+  end
+
   def search_query
     @search_query ||= params[:q].to_s.strip
   end
 
   def filter_conversations
     conversations_query = current_account.conversations.where(inbox_id: accessable_inbox_ids)
+                                         .where.not(id: hidden_conversation_ids)
                                          .joins('INNER JOIN contacts ON conversations.contact_id = contacts.id')
                                          .where("cast(conversations.display_id as text) ILIKE :search OR contacts.name ILIKE :search OR contacts.email
                             ILIKE :search OR contacts.phone_number ILIKE :search OR contacts.identifier ILIKE :search
@@ -108,6 +116,7 @@ class SearchService
   def message_base_query
     query = current_account.messages.where('created_at >= ?', 3.months.ago)
     query = query.where(inbox_id: accessable_inbox_ids) unless should_skip_inbox_filtering?
+    query = query.where.not(conversation_id: hidden_conversation_ids) if hidden_conversation_ids.any?
     query
   end
 

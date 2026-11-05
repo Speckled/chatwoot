@@ -344,4 +344,26 @@ describe ActionCableListener do
       listener.conversation_unread_count_changed(event)
     end
   end
+
+  describe 'a conversation the AI Brain started to message staff' do
+    let!(:staff_conversation) do
+      create(:conversation, account: account, inbox: inbox, additional_attributes: { 'ai_brain_audience' => 'staff' })
+    end
+
+    it 'reaches administrators only' do
+      event = Events::Base.new(:'conversation.read', Time.zone.now, conversation: staff_conversation)
+      expect(ActionCableBroadcastJob).to receive(:perform_later).with(
+        [admin.pubsub_token], 'conversation.read', staff_conversation.push_event_data.merge(account_id: account.id)
+      )
+
+      listener.conversation_read(event)
+    end
+
+    it 'does not tell an agent they were mentioned in it' do
+      event = Events::Base.new(:'conversation.mentioned', Time.zone.now, conversation: staff_conversation, user: agent)
+      expect(ActionCableBroadcastJob).not_to receive(:perform_later)
+
+      listener.conversation_mentioned(event)
+    end
+  end
 end

@@ -7,8 +7,9 @@ class ConversationPolicy < ApplicationPolicy
     administrator?
   end
 
+  # Conversations the AI Brain started to message staff are for administrators only.
   def show?
-    administrator? || agent_bot? || agent_can_view_conversation?
+    administrator? || agent_bot? || (agent_can_view_conversation? && !record.ai_brain_staff?)
   end
 
   private

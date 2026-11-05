@@ -20,6 +20,7 @@ module Enterprise::SearchService
   def build_where_conditions
     conditions = { account_id: current_account.id }
     conditions[:inbox_id] = accessable_inbox_ids unless should_skip_inbox_filtering?
+    conditions[:conversation_id] = { not: hidden_conversation_ids } if hidden_conversation_ids.any?
     conditions
   end
 

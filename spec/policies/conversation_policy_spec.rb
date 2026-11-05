@@ -70,4 +70,17 @@ RSpec.describe ConversationPolicy, type: :policy do
       end
     end
   end
+
+  permissions :show? do
+    context 'with a conversation the AI Brain started to message staff' do
+      let(:staff_conversation) { create(:conversation, account: account, additional_attributes: { 'ai_brain_audience' => 'staff' }) }
+
+      before { create(:inbox_member, user: agent, inbox: staff_conversation.inbox) }
+
+      it 'lets administrators open it and keeps agents out, even with inbox access' do
+        expect(subject).to permit(administrator_context, staff_conversation)
+        expect(subject).not_to permit(agent_context, staff_conversation)
+      end
+    end
+  end
 end

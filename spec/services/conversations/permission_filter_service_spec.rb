@@ -69,5 +69,19 @@ RSpec.describe Conversations::PermissionFilterService do
         expect(result).to include(inaccessible_conversation)
       end
     end
+
+    context 'with a conversation the AI Brain started to message staff' do
+      let!(:staff_conversation) { create(:conversation, account: account, inbox: inbox, additional_attributes: { 'ai_brain_audience' => 'staff' }) }
+
+      it 'shows it to administrators only' do
+        expect(described_class.new(account.conversations, admin, account).perform).to include(staff_conversation)
+
+        [false, true].each do |hint|
+          result = described_class.new(account.conversations, agent, account, plan_hint_selective_filter: hint).perform
+          expect(result).to include(conversation)
+          expect(result).not_to include(staff_conversation)
+        end
+      end
+    end
   end
 end

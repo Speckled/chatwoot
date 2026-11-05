@@ -51,6 +51,9 @@ Rails.application.routes.draw do
       get 'apps/:app_id/attachments/:id/file', to: 'apps/attachments#file'
       put 'apps/:app_id/attachments/:id/transcription', to: 'apps/attachments#transcription'
       post 'apps/:app_id/owners/:user_id/users', to: 'apps/owners#create_user'
+      patch 'apps/:app_id/owners/:user_id/users/:chatwoot_user_id', to: 'apps/owners#update_user'
+      delete 'apps/:app_id/owners/:user_id/users/:chatwoot_user_id', to: 'apps/owners#remove_user'
+      post 'apps/:app_id/inboxes/:inbox_id/messages', to: 'apps/inbox_messages#create'
 
       # ----------------------------------
       # start of account scoped api routes
