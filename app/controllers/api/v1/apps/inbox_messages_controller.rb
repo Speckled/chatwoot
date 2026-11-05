@@ -64,9 +64,11 @@ class Api::V1::Apps::InboxMessagesController < Api::V1::Apps::BaseController
   end
 
   def flag_staff_contact!(contact)
-    return if Conversation.ai_brain_staff_contact?(contact)
+    return if Conversation.ai_brain_staff_contact?(contact, @inbox.id)
 
-    contact.update!(additional_attributes: (contact.additional_attributes || {}).merge(AiBrainStaffConversation::STAFF_CONTACT_KEY => true))
+    attributes = contact.additional_attributes || {}
+    inbox_ids = Array(attributes[AiBrainStaffConversation::STAFF_INBOXES_KEY]) | [@inbox.id]
+    contact.update!(additional_attributes: attributes.merge(AiBrainStaffConversation::STAFF_INBOXES_KEY => inbox_ids))
   end
 
   # The contact's own thread in the inbox comes first: its source id is the number WhatsApp reported, which can differ
@@ -108,10 +110,11 @@ class Api::V1::Apps::InboxMessagesController < Api::V1::Apps::BaseController
     conversation.open! unless conversation.open?
   end
 
-  # Staff conversations stay pending, so no agent is assigned or notified.
+  # Staff conversations are pending on every inbox, as they start on the inboxes the AI serves. Agents are never shown,
+  # assigned or notified about them whatever the status: the finder, the policy and auto-assignment leave them out.
   def keep_for_administrators!(conversation)
     human_state(conversation).update!(state: 'human')
-    conversation.pending! if conversation.resolved?
+    conversation.pending! unless conversation.pending?
   end
 
   def hand_to_ai!(conversation)
