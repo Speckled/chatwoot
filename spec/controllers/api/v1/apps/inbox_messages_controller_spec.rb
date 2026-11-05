@@ -101,7 +101,17 @@ RSpec.describe 'AI Brain inbox messages API', type: :request do
     expect(conversation).to be_ai_brain_staff
     expect(conversation).to be_pending
     expect(conversation.ai_brain_conversation.state).to eq('human')
-    expect(Conversation.ai_brain_staff_contact?(conversation.contact)).to be(true)
+    expect(Conversation.ai_brain_staff_contact?(conversation.contact, inbox.id)).to be(true)
+  end
+
+  it 'keeps a new staff conversation pending on an inbox the AI does not serve' do
+    inbox.ai_brain_inbox.update!(active: false)
+
+    post url, headers: headers, params: body.merge(audience: 'staff'), as: :json
+
+    conversation = Conversation.find(response.parsed_body['chatwootConversationId'])
+    expect(conversation).to be_ai_brain_staff
+    expect(conversation).to be_pending
   end
 
   it 'refuses what cannot be sent' do

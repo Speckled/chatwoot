@@ -5,16 +5,18 @@ require 'rails_helper'
 RSpec.describe AiBrainStaffConversation do
   let(:account) { create(:account) }
   let(:inbox) { create(:inbox, account: account) }
-  let(:staff_contact) { create(:contact, account: account, additional_attributes: { 'ai_brain_staff' => true }) }
+  let(:staff_contact) { create(:contact, account: account, additional_attributes: { 'ai_brain_staff_inbox_ids' => [inbox.id] }) }
 
-  it 'flags the conversations a staff contact starts later' do
+  it 'flags the conversations a staff contact starts later in the inbox their messages came through' do
     conversation = create(:conversation, account: account, inbox: inbox, contact: staff_contact)
+    elsewhere = create(:conversation, account: account, inbox: create(:inbox, account: account), contact: staff_contact)
     other = create(:conversation, account: account, inbox: inbox)
 
     expect(conversation).to be_ai_brain_staff
+    expect(elsewhere).not_to be_ai_brain_staff
     expect(other).not_to be_ai_brain_staff
     expect(account.conversations.ai_brain_staff).to contain_exactly(conversation)
-    expect(account.conversations.without_ai_brain_staff).to contain_exactly(other)
+    expect(account.conversations.without_ai_brain_staff).to contain_exactly(elsewhere, other)
   end
 
   it 'never assigns a staff conversation to an agent' do

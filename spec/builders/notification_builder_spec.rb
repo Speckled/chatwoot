@@ -160,5 +160,27 @@ describe NotificationBuilder do
         end.not_to(change { outsider.notifications.count })
       end
     end
+
+    context 'when the conversation is an AI Brain staff conversation' do
+      let!(:primary_actor) do
+        create(:conversation, account: account, inbox: inbox, additional_attributes: { 'ai_brain_audience' => 'staff' })
+      end
+
+      it 'does not notify an agent of the inbox, even about a mention' do
+        expect do
+          %w[conversation_creation conversation_mention].each do |notification_type|
+            described_class.new(notification_type: notification_type, user: user, account: account, primary_actor: primary_actor).perform
+          end
+        end.not_to(change { user.notifications.count })
+      end
+
+      it 'still notifies an administrator' do
+        admin = create(:user, account: account, role: :administrator)
+
+        expect do
+          described_class.new(notification_type: 'conversation_mention', user: admin, account: account, primary_actor: primary_actor).perform
+        end.to change { admin.notifications.count }.by(1)
+      end
+    end
   end
 end

@@ -1,12 +1,14 @@
 # Conversations the AI Brain starts to message staff, such as a reminder to a professional, through the clinic's own
-# inboxes. Only account administrators see them, and the AI never answers them. The contact is flagged too, so a new
-# conversation the staff member starts later, by writing back, is staff-only as well.
+# inboxes. Only account administrators see them, and the AI never answers them. The contact is flagged for the inbox the
+# message went through, so a conversation the staff member starts there later, by writing back, is staff-only as well.
+# Their conversations in other inboxes are not: a staff member who is also a patient stays one there. In the same inbox
+# nothing tells the two apart, so staff reminders sent through an inbox patients don't use keep both.
 module AiBrainStaffConversation
   extend ActiveSupport::Concern
 
   AUDIENCE_KEY = 'ai_brain_audience'.freeze
   STAFF_AUDIENCE = 'staff'.freeze
-  STAFF_CONTACT_KEY = 'ai_brain_staff'.freeze
+  STAFF_INBOXES_KEY = 'ai_brain_staff_inbox_ids'.freeze
 
   included do
     scope :ai_brain_staff, -> { where("conversations.additional_attributes->>'ai_brain_audience' = 'staff'") }
@@ -16,8 +18,8 @@ module AiBrainStaffConversation
   end
 
   class_methods do
-    def ai_brain_staff_contact?(contact)
-      contact&.additional_attributes&.dig(STAFF_CONTACT_KEY) == true
+    def ai_brain_staff_contact?(contact, inbox_id)
+      Array(contact&.additional_attributes&.dig(STAFF_INBOXES_KEY)).include?(inbox_id)
     end
   end
 
@@ -42,7 +44,7 @@ module AiBrainStaffConversation
   private
 
   def inherit_ai_brain_staff_audience
-    return unless self.class.ai_brain_staff_contact?(contact)
+    return unless self.class.ai_brain_staff_contact?(contact, inbox_id)
 
     self.additional_attributes = (additional_attributes || {}).merge(AUDIENCE_KEY => STAFF_AUDIENCE)
   end
