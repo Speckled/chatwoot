@@ -10,7 +10,13 @@ import Icon from 'dashboard/components-next/icon/Icon.vue';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import NextInput from 'dashboard/components-next/input/Input.vue';
 import WithLabel from 'v3/components/Form/WithLabel.vue';
+import ServiceTermsEditor from 'dashboard/components-next/aiBrain/ServiceTermsEditor.vue';
+import {
+  fromOverrideForm,
+  toOverrideForm,
+} from 'dashboard/components-next/aiBrain/serviceTermsOverride';
 import servicesAPI from 'dashboard/api/aiBrain/services';
+import serviceTermsAPI from 'dashboard/api/aiBrain/serviceTerms';
 import ServiceConnectionCard from './ServiceConnectionCard.vue';
 
 // The calendar dropdown's choice for "create a new calendar for this person".
@@ -56,6 +62,9 @@ const form = reactive({
   whatsAppNumber: '',
   calendarId: '',
 });
+// What the professional being edited changes from the clinic's services and prices, and the backend's problems with it.
+const termsForm = ref(null);
+const termsErrors = ref({});
 
 const load = async () => {
   try {
@@ -85,7 +94,7 @@ const canCreateCalendar = computed(
   () => status.value?.isConnected && status.value?.isValid
 );
 
-const openEditor = professional => {
+const openEditor = async professional => {
   editing.value = professional;
   Object.assign(form, {
     displayName: professional.displayName || professional.name,
@@ -93,7 +102,16 @@ const openEditor = professional => {
     whatsAppNumber: professional.whatsAppNumber || '',
     calendarId: professional.linkedCalendarId || '',
   });
+  termsForm.value = null;
+  termsErrors.value = {};
   editorRef.value?.open();
+  try {
+    const { clinic, professionals: terms } = (await serviceTermsAPI.get()).data;
+    const own = terms.find(entry => entry.userId === professional.id)?.terms;
+    termsForm.value = toOverrideForm(clinic, own || {});
+  } catch (error) {
+    useAlert(t('AI_BRAIN.ERROR'));
+  }
 };
 
 const saveCalendar = async professional => {
@@ -116,7 +134,15 @@ const saveCalendar = async professional => {
 const saveEditor = async () => {
   const professional = editing.value;
   saving.value = true;
+  termsErrors.value = {};
   try {
+    // Service terms go first: they are the likeliest to be rejected, and then nothing else is saved.
+    if (termsForm.value) {
+      await serviceTermsAPI.updateProfessional(
+        professional.id,
+        fromOverrideForm(termsForm.value)
+      );
+    }
     const { data } = await servicesAPI.updateUser(
       professional.chatwootUserId,
       {
@@ -134,6 +160,7 @@ const saveEditor = async () => {
     editorRef.value?.close();
     await load();
   } catch (error) {
+    termsErrors.value = error?.response?.data?.errors || {};
     useAlert(error?.response?.data?.error || t('AI_BRAIN.ERROR'));
   } finally {
     saving.value = false;
@@ -262,6 +289,8 @@ const disconnect = async (service, name) => {
             :confirm-button-label="t('AI_BRAIN.SAVE')"
             :cancel-button-label="t('AI_BRAIN.CANCEL')"
             :is-loading="saving"
+            width="3xl"
+            overflow-y-auto
             @confirm="saveEditor"
           >
             <div class="flex flex-col gap-4">
@@ -308,6 +337,24 @@ const disconnect = async (service, name) => {
                   </option>
                 </select>
               </WithLabel>
+              <div
+                v-if="termsForm"
+                class="flex flex-col gap-4 pt-4 border-t border-n-weak"
+              >
+                <div class="flex flex-col gap-1">
+                  <h3 class="text-base font-medium text-n-slate-12">
+                    {{ t('AI_BRAIN.SERVICE_TERMS.TITLE') }}
+                  </h3>
+                  <p class="text-sm text-n-slate-11">
+                    {{ t('AI_BRAIN.SERVICE_TERMS.PROFESSIONAL_HINT') }}
+                  </p>
+                </div>
+                <ServiceTermsEditor
+                  v-model="termsForm"
+                  mode="override"
+                  :errors="termsErrors"
+                />
+              </div>
             </div>
           </Dialog>
         </SectionLayout>

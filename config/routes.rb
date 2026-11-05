@@ -63,6 +63,11 @@ Rails.application.routes.draw do
         scope module: :accounts do
           namespace :ai_brain do
             resource :business_rules, only: [:show, :update]
+            resource :service_terms, only: [:show, :update] do
+              put 'professionals/:user_id', action: :update_professional
+            end
+            get 'ai_models/providers', to: 'ai_models#providers'
+            get 'ai_models/providers/:provider/models', to: 'ai_models#models', constraints: { provider: /[A-Za-z0-9_-]+/ }
             resources :faqs, only: [:index, :show, :create, :update, :destroy]
             resources :services, only: [:index]
             resources :users, only: [:index, :update]
