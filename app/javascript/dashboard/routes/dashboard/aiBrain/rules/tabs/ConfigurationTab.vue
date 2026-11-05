@@ -10,6 +10,9 @@ import ComboBox from 'dashboard/components-next/combobox/ComboBox.vue';
 import StringListEditor from 'dashboard/components-next/aiBrain/StringListEditor.vue';
 import aiModelsAPI from 'dashboard/api/aiBrain/aiModels';
 
+// The backend's ChargeTiming values.
+const CHARGE_ON_REQUEST = 0;
+const CHARGE_AFTER_BOOKING = 1;
 const MODELS_LOADING = 'loading';
 const MODELS_READY = 'ready';
 const MODELS_UNAVAILABLE = 'unavailable';
@@ -17,6 +20,16 @@ const MODELS_UNAVAILABLE = 'unavailable';
 // The business rules object the Rules page loads and saves.
 const rules = defineModel({ type: Object, required: true });
 const { t } = useI18n();
+const chargeTimingOptions = computed(() => [
+  {
+    value: CHARGE_ON_REQUEST,
+    label: t('AI_BRAIN.CHARGE_TIMING.ON_REQUEST'),
+  },
+  {
+    value: CHARGE_AFTER_BOOKING,
+    label: t('AI_BRAIN.CHARGE_TIMING.AFTER_BOOKING'),
+  },
+]);
 const providers = ref([]);
 const models = ref([]);
 const modelsState = ref(MODELS_LOADING);
@@ -92,6 +105,19 @@ watch(
           </span>
           <Switch v-model="rules.enforceAllowlist" />
         </div>
+        <WithLabel
+          name="charge-timing"
+          :label="t('AI_BRAIN.CHARGE_TIMING.LABEL')"
+        >
+          <Select
+            v-model="rules.chargeTiming"
+            :options="chargeTimingOptions"
+            :aria-label="t('AI_BRAIN.CHARGE_TIMING.LABEL')"
+          />
+          <p class="text-xs text-n-slate-11">
+            {{ t('AI_BRAIN.CHARGE_TIMING.HINT') }}
+          </p>
+        </WithLabel>
       </div>
     </SectionLayout>
 

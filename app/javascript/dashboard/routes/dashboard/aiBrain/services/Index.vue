@@ -7,6 +7,7 @@ import SettingsLayout from '../../settings/SettingsLayout.vue';
 import BaseSettingsHeader from '../../settings/components/BaseSettingsHeader.vue';
 import SectionLayout from '../../settings/account/components/SectionLayout.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
+import Button from 'dashboard/components-next/button/Button.vue';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import NextInput from 'dashboard/components-next/input/Input.vue';
 import WithLabel from 'v3/components/Form/WithLabel.vue';
@@ -24,6 +25,10 @@ const NEW_CALENDAR = '__new__';
 // Route slugs of the Google services the backend connects.
 const GOOGLE_CALENDAR = 'google-calendar';
 const GOOGLE_DRIVE = 'google-drive';
+// The Mercado Pago route slug; a professional's own account is busy under `mercado-pago:<their id>`.
+const MERCADO_PAGO = 'mercado-pago';
+const mercadoPagoKey = userId =>
+  userId ? `${MERCADO_PAGO}:${userId}` : MERCADO_PAGO;
 
 const { t } = useI18n();
 const route = useRoute();
@@ -32,6 +37,7 @@ const router = useRouter();
 const CONNECTION_QUERY_KEYS = {
   calendarConnection: () => t('AI_BRAIN.GOOGLE_CALENDAR'),
   googleDriveConnection: () => t('AI_BRAIN.GOOGLE_DRIVE'),
+  mercadoPagoConnection: () => t('AI_BRAIN.MERCADO_PAGO'),
 };
 // The failure statuses the callback can report, with their explanations.
 const CONNECTION_ERRORS = {
@@ -48,6 +54,7 @@ const CONNECTION_ERRORS = {
 const statuses = ref({});
 const status = computed(() => statuses.value.GoogleCalendar);
 const driveStatus = computed(() => statuses.value.GoogleDrive);
+const mercadoPagoStatus = computed(() => statuses.value.MercadoPago);
 const calendars = ref([]);
 const professionals = ref([]);
 const showCalendars = ref(false);
@@ -67,6 +74,18 @@ const termsForm = ref(null);
 const termsErrors = ref({});
 // The terms as loaded, so a save that leaves them alone does not send them again.
 const loadedTerms = ref('');
+// The Mercado Pago account of the professional being edited, and whether any account, theirs or the clinic's, would
+// receive their charges.
+const editingMercadoPago = computed(() =>
+  mercadoPagoStatus.value?.professionals?.find(
+    entry => entry.userId === editing.value?.id
+  )
+);
+const professionalMercadoPagoConnected = computed(
+  () =>
+    !!editingMercadoPago.value?.isConnected ||
+    !!mercadoPagoStatus.value?.isConnected
+);
 
 const load = async () => {
   try {
@@ -196,25 +215,24 @@ onMounted(() => {
   return load();
 });
 
-const connect = async service => {
-  busyService.value = service;
+// Leaves for the provider's authorization page; its callback brings the browser back here with the result.
+const authorize = async (busyKey, request) => {
+  busyService.value = busyKey;
   try {
-    window.location.assign(
-      (await servicesAPI.getGoogleAuthUrl(service)).data.authorizationUrl
-    );
+    window.location.assign((await request()).data.authorizationUrl);
   } catch (error) {
     useAlert(t('AI_BRAIN.ERROR'));
     busyService.value = null;
   }
 };
 
-const disconnect = async (service, name) => {
+const forget = async (busyKey, name, request) => {
   if (!window.confirm(t('AI_BRAIN.CONFIRM_DISCONNECT', { service: name }))) {
     return;
   }
-  busyService.value = service;
+  busyService.value = busyKey;
   try {
-    await servicesAPI.disconnectGoogle(service);
+    await request();
     await load();
   } catch (error) {
     useAlert(t('AI_BRAIN.ERROR'));
@@ -222,6 +240,20 @@ const disconnect = async (service, name) => {
     busyService.value = null;
   }
 };
+
+const connect = service =>
+  authorize(service, () => servicesAPI.getGoogleAuthUrl(service));
+const disconnect = (service, name) =>
+  forget(service, name, () => servicesAPI.disconnectGoogle(service));
+// Without a user id, the clinic's account.
+const connectMercadoPago = userId =>
+  authorize(mercadoPagoKey(userId), () =>
+    servicesAPI.getMercadoPagoAuthUrl(userId)
+  );
+const disconnectMercadoPago = userId =>
+  forget(mercadoPagoKey(userId), t('AI_BRAIN.MERCADO_PAGO'), () =>
+    servicesAPI.disconnectMercadoPago(userId)
+  );
 </script>
 
 <template>
@@ -340,6 +372,79 @@ const disconnect = async (service, name) => {
                 </select>
               </WithLabel>
               <div
+                v-if="editingMercadoPago"
+                class="flex flex-col gap-2 pt-4 border-t border-n-weak"
+              >
+                <h3 class="text-base font-medium text-n-slate-12">
+                  {{ t('AI_BRAIN.PROFESSIONAL_MERCADO_PAGO.TITLE') }}
+                </h3>
+                <p class="text-sm text-n-slate-11">
+                  {{ t('AI_BRAIN.PROFESSIONAL_MERCADO_PAGO.HINT') }}
+                </p>
+                <div
+                  class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border border-n-weak bg-n-solid-2"
+                >
+                  <div class="flex flex-col gap-0.5 text-sm">
+                    <span
+                      :class="
+                        editingMercadoPago.isConnected
+                          ? 'text-n-teal-11'
+                          : 'text-n-slate-11'
+                      "
+                    >
+                      {{
+                        editingMercadoPago.isConnected
+                          ? editingMercadoPago.accountEmail ||
+                            editingMercadoPago.nickname ||
+                            t('AI_BRAIN.CONNECTED')
+                          : t(
+                              'AI_BRAIN.PROFESSIONAL_MERCADO_PAGO.NOT_CONNECTED'
+                            )
+                      }}
+                    </span>
+                    <span
+                      v-if="
+                        editingMercadoPago.isConnected &&
+                        !editingMercadoPago.liveMode
+                      "
+                      class="text-xs text-n-amber-11"
+                    >
+                      {{ t('AI_BRAIN.MERCADO_PAGO_TEST_ACCOUNT') }}
+                    </span>
+                    <span
+                      v-if="editingMercadoPago.validationError"
+                      class="text-xs text-n-ruby-9"
+                    >
+                      {{ editingMercadoPago.validationError }}
+                    </span>
+                  </div>
+                  <div class="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      color="blue"
+                      :is-loading="busyService === mercadoPagoKey(editing.id)"
+                      :label="
+                        editingMercadoPago.isConnected
+                          ? t('AI_BRAIN.RECONNECT')
+                          : t('AI_BRAIN.CONNECT')
+                      "
+                      @click="connectMercadoPago(editing.id)"
+                    />
+                    <Button
+                      v-if="editingMercadoPago.isConnected"
+                      type="button"
+                      size="sm"
+                      variant="faded"
+                      color="ruby"
+                      :disabled="busyService === mercadoPagoKey(editing.id)"
+                      :label="t('AI_BRAIN.DISCONNECT')"
+                      @click="disconnectMercadoPago(editing.id)"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
                 v-if="termsForm"
                 class="flex flex-col gap-4 pt-4 border-t border-n-weak"
               >
@@ -355,6 +460,7 @@ const disconnect = async (service, name) => {
                   v-model="termsForm"
                   mode="override"
                   :errors="termsErrors"
+                  :mercado-pago-connected="professionalMercadoPagoConnected"
                 />
               </div>
             </div>
@@ -481,6 +587,25 @@ const disconnect = async (service, name) => {
           @connect="connect(GOOGLE_DRIVE)"
           @disconnect="disconnect(GOOGLE_DRIVE, t('AI_BRAIN.GOOGLE_DRIVE'))"
         />
+
+        <ServiceConnectionCard
+          v-if="mercadoPagoStatus"
+          :title="t('AI_BRAIN.MERCADO_PAGO')"
+          :description="t('AI_BRAIN.MERCADO_PAGO_DESCRIPTION')"
+          :status="mercadoPagoStatus"
+          :busy="busyService === MERCADO_PAGO"
+          @connect="connectMercadoPago()"
+          @disconnect="disconnectMercadoPago()"
+        >
+          <template
+            v-if="mercadoPagoStatus.isConnected && !mercadoPagoStatus.liveMode"
+            #account
+          >
+            <span class="text-xs text-n-amber-11">
+              {{ t('AI_BRAIN.MERCADO_PAGO_TEST_ACCOUNT') }}
+            </span>
+          </template>
+        </ServiceConnectionCard>
       </div>
     </template>
   </SettingsLayout>

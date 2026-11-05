@@ -43,6 +43,7 @@ const load = async () => {
       otherSessionInactivityMinutes: 30,
       requiredOnboardingFields: ['Name'],
       optionalOnboardingFields: ['Email'],
+      chargeTiming: 0,
       ...data,
     };
   } catch (error) {

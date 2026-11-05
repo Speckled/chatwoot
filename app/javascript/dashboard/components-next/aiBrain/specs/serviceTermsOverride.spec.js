@@ -1,4 +1,5 @@
 import {
+  PAYMENT_MERCADO_PAGO,
   PAYMENT_PIX,
   SERVICE_CHOICE,
   fromClinicForm,
@@ -54,6 +55,19 @@ describe('toPrice', () => {
 describe('clinic form', () => {
   it('round-trips the clinic terms', () => {
     expect(fromClinicForm(toClinicForm(clinic))).toEqual(clinic);
+  });
+
+  it('round-trips Mercado Pago next to the Pix key', () => {
+    const terms = {
+      ...clinic,
+      paymentMethods: [
+        ...clinic.paymentMethods,
+        { type: PAYMENT_MERCADO_PAGO },
+      ],
+    };
+
+    expect(toClinicForm(terms).mercadoPago).toBe(true);
+    expect(fromClinicForm(toClinicForm(terms))).toEqual(terms);
   });
 
   it('drops blank rows and treats Pix off and empty notes as none', () => {
@@ -161,5 +175,24 @@ describe('professional form', () => {
         },
       ],
     });
+  });
+
+  it('starts an own payment list with Mercado Pago when the clinic accepts it', () => {
+    const withMercadoPago = {
+      ...clinic,
+      paymentMethods: [
+        ...clinic.paymentMethods,
+        { type: PAYMENT_MERCADO_PAGO },
+      ],
+    };
+    const form = toOverrideForm(withMercadoPago, {});
+    form.payment.inherit = false;
+
+    expect(form.payment.mercadoPago).toBe(true);
+    expect(fromOverrideForm(form).paymentMethods).toEqual([
+      { type: PAYMENT_MERCADO_PAGO },
+    ]);
+    form.payment.mercadoPago = false;
+    expect(fromOverrideForm(form).paymentMethods).toEqual([]);
   });
 });

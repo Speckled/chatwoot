@@ -19,6 +19,19 @@ class ServicesAPI extends ApiClient {
     );
   }
 
+  // userId is the AI Brain user id of a professional connecting an account of their own; without it, the clinic's.
+  getMercadoPagoAuthUrl(userId) {
+    const path = userId
+      ? `professionals/${userId}/authorization_url`
+      : 'authorization_url';
+    return axios.get(`${this.baseUrl()}/ai_brain/mercado_pago/${path}`);
+  }
+
+  disconnectMercadoPago(userId) {
+    const path = userId ? `/professionals/${userId}` : '';
+    return axios.delete(`${this.baseUrl()}/ai_brain/mercado_pago${path}`);
+  }
+
   getCalendars() {
     return axios.get(`${this.baseUrl()}/ai_brain/calendars`);
   }

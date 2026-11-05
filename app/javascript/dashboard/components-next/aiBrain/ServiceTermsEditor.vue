@@ -12,7 +12,9 @@ import StringListEditor from 'dashboard/components-next/aiBrain/StringListEditor
 import { SERVICE_CHOICE, newServiceRow } from './serviceTermsOverride';
 
 // Edits a form made by serviceTermsOverride.js: the clinic's terms ("clinic"), or what one professional changes from
-// them ("override"). `errors` are the backend's validation problems, by field.
+// them ("override"). `errors` are the backend's validation problems, by field. `mercadoPagoConnected` says whether a
+// Mercado Pago account would receive this clinic's or professional's charges; without one, Mercado Pago can only be
+// turned off.
 const props = defineProps({
   mode: {
     type: String,
@@ -20,6 +22,7 @@ const props = defineProps({
     validator: value => ['clinic', 'override'].includes(value),
   },
   errors: { type: Object, default: () => ({}) },
+  mercadoPagoConnected: { type: Boolean, default: false },
 });
 const form = defineModel({ type: Object, required: true });
 const { t } = useI18n();
@@ -35,6 +38,10 @@ const offeredRows = computed(() =>
 );
 const pix = computed(() =>
   isClinic.value ? form.value.pix : form.value.payment.pix
+);
+// Holds the mercadoPago flag: the clinic form itself, or a professional's payment section.
+const payment = computed(() =>
+  isClinic.value ? form.value : form.value.payment
 );
 const showPayment = computed(
   () => isClinic.value || !form.value.payment.inherit
@@ -230,6 +237,26 @@ const removeService = index => offeredRows.value.splice(index, 1);
         <p class="text-xs text-n-slate-11">
           {{ t('AI_BRAIN.SERVICE_TERMS.PIX_HINT') }}
         </p>
+        <div
+          class="flex items-center justify-between gap-3 p-3 rounded-lg border border-n-weak bg-n-solid-2"
+        >
+          <div class="flex flex-col gap-0.5">
+            <span class="text-sm font-medium text-n-slate-12">
+              {{ t('AI_BRAIN.SERVICE_TERMS.MERCADO_PAGO') }}
+            </span>
+            <span class="text-xs text-n-slate-11">
+              {{
+                mercadoPagoConnected
+                  ? t('AI_BRAIN.SERVICE_TERMS.MERCADO_PAGO_HINT')
+                  : t('AI_BRAIN.SERVICE_TERMS.MERCADO_PAGO_NOT_CONNECTED')
+              }}
+            </span>
+          </div>
+          <Switch
+            v-model="payment.mercadoPago"
+            :disabled="!mercadoPagoConnected && !payment.mercadoPago"
+          />
+        </div>
       </template>
       <p v-if="errors.paymentMethods" class="text-sm text-n-ruby-11">
         {{ errors.paymentMethods.join(' ') }}

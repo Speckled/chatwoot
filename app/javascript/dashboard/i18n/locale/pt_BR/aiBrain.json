@@ -27,6 +27,12 @@
     "BUSINESS_NAME": "Nome da empresa",
     "TIME_ZONE": "Fuso horário",
     "ALLOWLIST": "Exigir lista de permissões",
+    "CHARGE_TIMING": {
+      "LABEL": "Quando cobrar os pacientes",
+      "ON_REQUEST": "Quando o paciente pergunta como pagar",
+      "AFTER_BOOKING": "Logo depois de agendar",
+      "HINT": "Vale para todos os profissionais, no Pix e no Mercado Pago."
+    },
     "GLOBAL_INSTRUCTIONS": "Instruções globais",
     "COMPANY_RULES": "Regras da empresa",
     "PROHIBITED": "Comportamentos proibidos",
@@ -70,6 +76,14 @@
     "GOOGLE_CALENDAR": "Google Agenda",
     "GOOGLE_DRIVE": "Google Drive",
     "GOOGLE_DRIVE_DESCRIPTION": "Guarde e compartilhe arquivos na pasta \"LRB Chatbot\" do Drive desta conta.",
+    "MERCADO_PAGO": "Mercado Pago",
+    "MERCADO_PAGO_DESCRIPTION": "O paciente paga por link ou Pix do Mercado Pago nesta conta, a não ser que o profissional dele tenha conectado uma conta própria.",
+    "MERCADO_PAGO_TEST_ACCOUNT": "Conta de teste",
+    "PROFESSIONAL_MERCADO_PAGO": {
+      "TITLE": "Conta própria do Mercado Pago",
+      "HINT": "As cobranças das consultas deste profissional vão para a conta dele quando conectada; senão, para a da clínica. Conectar sai desta página, então salve antes as alterações.",
+      "NOT_CONNECTED": "Não conectada: as cobranças vão para a conta da clínica."
+    },
     "CONNECTED": "Conectado",
     "DISCONNECTED": "Não conectado",
     "PRIMARY": "Principal",
@@ -138,6 +152,9 @@
       "PIX_KEY": "Chave Pix",
       "PIX_RECIPIENT": "Nome do recebedor",
       "PIX_HINT": "O paciente recebe a chave só quando pede, junto com o nome do recebedor.",
+      "MERCADO_PAGO": "Aceitar Mercado Pago",
+      "MERCADO_PAGO_HINT": "O paciente escolhe um link de pagamento ou um código Pix gerado para cada cobrança.",
+      "MERCADO_PAGO_NOT_CONNECTED": "Conecte antes uma conta do Mercado Pago na página Serviços.",
       "NOTES": "Observações",
       "PROFESSIONAL_NOTES_HINT": "As observações deste profissional substituem as da clínica."
     },

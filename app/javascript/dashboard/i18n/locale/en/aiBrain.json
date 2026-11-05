@@ -27,6 +27,12 @@
     "BUSINESS_NAME": "Business name",
     "TIME_ZONE": "Time zone",
     "ALLOWLIST": "Enforce allowlist",
+    "CHARGE_TIMING": {
+      "LABEL": "When to charge patients",
+      "ON_REQUEST": "When the patient asks how to pay",
+      "AFTER_BOOKING": "Right after booking",
+      "HINT": "Applies to every professional, for Pix and Mercado Pago."
+    },
     "GLOBAL_INSTRUCTIONS": "Global instructions",
     "COMPANY_RULES": "Company rules",
     "PROHIBITED": "Prohibited behaviors",
@@ -70,6 +76,14 @@
     "GOOGLE_CALENDAR": "Google Calendar",
     "GOOGLE_DRIVE": "Google Drive",
     "GOOGLE_DRIVE_DESCRIPTION": "Store and share files in an \"LRB Chatbot\" folder in this account's Drive.",
+    "MERCADO_PAGO": "Mercado Pago",
+    "MERCADO_PAGO_DESCRIPTION": "Patients pay by a Mercado Pago link or Pix code into this account, unless their professional connected one of their own.",
+    "MERCADO_PAGO_TEST_ACCOUNT": "Test account",
+    "PROFESSIONAL_MERCADO_PAGO": {
+      "TITLE": "Own Mercado Pago account",
+      "HINT": "Charges for this professional's appointments go to their own account when it is connected, otherwise to the clinic's. Connecting leaves this page, so save your changes first.",
+      "NOT_CONNECTED": "Not connected: charges go to the clinic's account."
+    },
     "CONNECTED": "Connected",
     "DISCONNECTED": "Not connected",
     "PRIMARY": "Primary",
@@ -138,6 +152,9 @@
       "PIX_KEY": "Pix key",
       "PIX_RECIPIENT": "Recipient name",
       "PIX_HINT": "Patients get the key only when they ask for it, together with the recipient's name.",
+      "MERCADO_PAGO": "Accept Mercado Pago",
+      "MERCADO_PAGO_HINT": "The patient chooses a payment link or a Pix code made for each charge.",
+      "MERCADO_PAGO_NOT_CONNECTED": "Connect a Mercado Pago account on the Services page first.",
       "NOTES": "Notes",
       "PROFESSIONAL_NOTES_HINT": "This professional's notes replace the clinic's."
     },

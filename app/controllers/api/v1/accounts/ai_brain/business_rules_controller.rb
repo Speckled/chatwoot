@@ -7,7 +7,7 @@ class Api::V1::Accounts::AiBrain::BusinessRulesController < Api::V1::Accounts::A
     rules = params.require(:businessRules).permit(
       :isAiEnabled, :businessName, :timeZone, :enforceAllowlist, :globalInstructions,
       :aiProvider, :modelId, :temperature, :maxOutputTokens, :tone,
-      :inactivityNudgeMinutes, :inactivityAutoCloseMinutes, :otherSessionInactivityMinutes,
+      :inactivityNudgeMinutes, :inactivityAutoCloseMinutes, :otherSessionInactivityMinutes, :chargeTiming,
       companyRules: [], prohibitedBehaviors: [],
       requiredOnboardingFields: [], optionalOnboardingFields: [],
       workingHours: [:startTime, :endTime, :defaultSlotDurationMinutes, { activeDays: [], blackoutDates: [] }]

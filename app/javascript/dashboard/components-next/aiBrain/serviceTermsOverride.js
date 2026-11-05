@@ -4,6 +4,8 @@
 // service only they offer, and an unset list of plans or payment methods means the clinic's.
 
 export const PAYMENT_PIX = 0;
+// Accepted, with no details: the backend charges through the professional's own Mercado Pago account, else the clinic's.
+export const PAYMENT_MERCADO_PAGO = 1;
 
 export const SERVICE_CHOICE = {
   INHERIT: 'inherit',
@@ -39,6 +41,14 @@ const pixMethods = pix =>
         },
       ]
     : [];
+
+const acceptsMercadoPago = methods =>
+  (methods || []).some(method => method.type === PAYMENT_MERCADO_PAGO);
+
+const paymentMethods = (pix, mercadoPago) => [
+  ...pixMethods(pix),
+  ...(mercadoPago ? [{ type: PAYMENT_MERCADO_PAGO }] : []),
+];
 
 const serviceRow = service => ({
   id: service.id,
@@ -81,13 +91,14 @@ export const toClinicForm = (terms = {}) => ({
   services: (terms.services || []).map(serviceRow),
   plans: [...(terms.acceptedPlans || [])],
   pix: pixForm(terms.paymentMethods),
+  mercadoPago: acceptsMercadoPago(terms.paymentMethods),
   notes: terms.notes || '',
 });
 
 export const fromClinicForm = form => ({
   services: form.services.filter(row => !isBlank(row)).map(offeredService),
   acceptedPlans: trimmedList(form.plans),
-  paymentMethods: pixMethods(form.pix),
+  paymentMethods: paymentMethods(form.pix, form.mercadoPago),
   notes: form.notes.trim() || null,
 });
 
@@ -134,10 +145,14 @@ export const toOverrideForm = (clinic = {}, terms = {}) => {
       inherit: isUnset(terms.acceptedPlans),
       list: [...(terms.acceptedPlans ?? clinic.acceptedPlans ?? [])],
     },
-    // An own Pix key never starts from the clinic's, which belongs to the clinic.
+    // An own Pix key never starts from the clinic's, which belongs to the clinic. Mercado Pago starts as the clinic
+    // has it: payment methods are all or nothing, so an own list keeps it only when it is listed again.
     payment: {
       inherit: isUnset(terms.paymentMethods),
       pix: pixForm(terms.paymentMethods),
+      mercadoPago: acceptsMercadoPago(
+        terms.paymentMethods ?? clinic.paymentMethods
+      ),
     },
     notes: terms.notes || '',
   };
@@ -165,6 +180,8 @@ export const fromOverrideForm = form => ({
     ...form.ownServices.filter(row => !isBlank(row)).map(offeredService),
   ],
   acceptedPlans: form.plans.inherit ? null : trimmedList(form.plans.list),
-  paymentMethods: form.payment.inherit ? null : pixMethods(form.payment.pix),
+  paymentMethods: form.payment.inherit
+    ? null
+    : paymentMethods(form.payment.pix, form.payment.mercadoPago),
   notes: form.notes.trim() || null,
 });
