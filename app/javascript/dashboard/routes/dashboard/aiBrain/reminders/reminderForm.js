@@ -101,11 +101,15 @@ const targetFrom = target => {
       name: target.name.trim() || null,
     };
   }
+  // Nothing picked goes as null, so the AI Brain says what is missing.
   if (target.type === TARGET.USER) {
-    return { type: target.type, userId: target.userId };
+    return { type: target.type, userId: target.userId || null };
   }
   if (target.type === TARGET.TEAM) {
-    return { type: target.type, teamId: Number(target.teamId) };
+    return {
+      type: target.type,
+      teamId: target.teamId ? Number(target.teamId) : null,
+    };
   }
   return { type: target.type };
 };

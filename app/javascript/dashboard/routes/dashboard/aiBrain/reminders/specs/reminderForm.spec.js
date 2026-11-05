@@ -173,6 +173,22 @@ describe('reminder form', () => {
     expect(sent.isEnabled).toBe(false);
   });
 
+  it('sends a staff member or team not picked yet as null', () => {
+    const form = newReminderForm();
+
+    form.target.type = TARGET.USER;
+    expect(fromReminderForm(form).target).toEqual({
+      type: TARGET.USER,
+      userId: null,
+    });
+
+    form.target.type = TARGET.TEAM;
+    expect(fromReminderForm(form).target).toEqual({
+      type: TARGET.TEAM,
+      teamId: null,
+    });
+  });
+
   it('offers the day schedule only to staff on days of the week', () => {
     expect(canSendDailySchedule(TARGET.USER, PRESET.WEEKDAYS)).toBe(true);
     expect(canSendDailySchedule(TARGET.TEAM, PRESET.DAILY)).toBe(true);
