@@ -9,6 +9,7 @@ import Select from 'dashboard/components-next/select/Select.vue';
 import ComboBox from 'dashboard/components-next/combobox/ComboBox.vue';
 import StringListEditor from 'dashboard/components-next/aiBrain/StringListEditor.vue';
 import aiModelsAPI from 'dashboard/api/aiBrain/aiModels';
+import PaymentTemplatePicker from './PaymentTemplatePicker.vue';
 
 // The backend's ChargeTiming values.
 const CHARGE_ON_REQUEST = 0;
@@ -119,6 +120,10 @@ watch(
           </p>
         </WithLabel>
       </div>
+    </SectionLayout>
+
+    <SectionLayout :title="t('AI_BRAIN.PAYMENT_TEMPLATE.TITLE')" with-border>
+      <PaymentTemplatePicker v-model="rules.paymentConfirmationTemplate" />
     </SectionLayout>
 
     <SectionLayout :title="t('AI_BRAIN.MODEL_CONFIG')" with-border>

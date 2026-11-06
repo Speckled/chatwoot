@@ -5,6 +5,7 @@ import Rules from './rules/Index.vue';
 import Services from './services/Index.vue';
 import Reminders from './reminders/Index.vue';
 import TestLab from './test/Index.vue';
+import Payments from './payments/Index.vue';
 
 const meta = { permissions: ['administrator'] };
 const route = (path, name, component) => ({
@@ -26,5 +27,6 @@ export default [
   route('rules', 'ai_brain_rules', Rules),
   route('services', 'ai_brain_services', Services),
   route('reminders', 'ai_brain_reminders', Reminders),
+  route('payments', 'ai_brain_payments', Payments),
   route('test', 'ai_brain_test', TestLab),
 ];

@@ -292,6 +292,42 @@
       "DETAILS": "Details",
       "OPEN_CONVERSATION": "Open conversation",
       "NO_DELIVERIES": "Nothing sent yet."
+    },
+    "PAYMENT_TEMPLATE": {
+      "TITLE": "Payment confirmation template",
+      "HINT": "WhatsApp delivers only approved templates to a patient who last wrote more than 24 hours ago. Pick the template that confirms a Mercado Pago payment in that case; inside the window the patient gets the usual text.",
+      "INBOX": "List templates from",
+      "TEMPLATE": "Template",
+      "NONE": "No template (free text only)",
+      "PARAMETER": "Parameter {n}"
+    },
+    "PAYMENTS": {
+      "TITLE": "Payments",
+      "DESCRIPTION": "Mercado Pago charges the AI Brain made for patients, newest first. A paid appointment the patient cancelled waits here for you to decide on a refund.",
+      "WHEN": "Created",
+      "PATIENT": "Patient",
+      "WHAT": "Charge",
+      "AMOUNT": "Amount",
+      "STATUS": "Status",
+      "EMPTY": "No charges yet.",
+      "FILTER_ALL": "All",
+      "REFUND": "Refund",
+      "CONFIRM_REFUND": "Return {amount} to {patient} through Mercado Pago? This cannot be undone.",
+      "REFUNDED": "Refund sent.",
+      "OPEN_CONVERSATION": "Conversation",
+      "STATUSES": {
+        "pending": "Waiting for payment",
+        "approved": "Paid",
+        "refund_requested": "Paid, appointment cancelled",
+        "refunded": "Refunded",
+        "expired": "Expired",
+        "cancelled": "Cancelled",
+        "failed": "Failed"
+      },
+      "KINDS": {
+        "pix": "Pix",
+        "checkout": "Link"
+      }
     }
   }
 }

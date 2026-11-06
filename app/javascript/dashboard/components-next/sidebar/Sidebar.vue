@@ -538,6 +538,11 @@ const menuItems = computed(() => {
                 to: accountScopedRoute('ai_brain_reminders'),
               },
               {
+                name: 'AI Brain Payments',
+                label: t('SIDEBAR.AI_BRAIN_PAYMENTS'),
+                to: accountScopedRoute('ai_brain_payments'),
+              },
+              {
                 name: 'AI Brain Test',
                 label: t('SIDEBAR.AI_BRAIN_TEST'),
                 to: accountScopedRoute('ai_brain_test'),

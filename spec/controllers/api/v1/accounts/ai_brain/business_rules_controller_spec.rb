@@ -23,4 +23,19 @@ RSpec.describe 'AI Brain business rules API', type: :request do
       expect(body).to include('businessName' => 'Clínica', 'chargeTiming' => 1)
     end
   end
+
+  it 'passes the payment confirmation template on' do
+    allow(client).to receive(:put).and_return([200, {}])
+    template = { name: 'pagamento_confirmado', language: 'pt_BR', category: 'UTILITY', bodyParameters: ['{{client_first_name}}', '{{amount}}'] }
+
+    put "/api/v1/accounts/#{account.id}/ai_brain/business_rules",
+        headers: admin.create_new_auth_token,
+        params: { businessRules: { businessName: 'Clínica', paymentConfirmationTemplate: template } },
+        as: :json
+
+    expect(response).to have_http_status(:ok)
+    expect(client).to have_received(:put) do |_path, body|
+      expect(body['paymentConfirmationTemplate']).to eq(template.deep_stringify_keys)
+    end
+  end
 end

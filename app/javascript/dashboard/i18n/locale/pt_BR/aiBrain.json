@@ -292,6 +292,42 @@
       "DETAILS": "Detalhes",
       "OPEN_CONVERSATION": "Abrir conversa",
       "NO_DELIVERIES": "Nada enviado ainda."
+    },
+    "PAYMENT_TEMPLATE": {
+      "TITLE": "Modelo de confirmação de pagamento",
+      "HINT": "O WhatsApp só entrega modelos aprovados a um paciente que escreveu pela última vez há mais de 24 horas. Escolha o modelo que confirma um pagamento do Mercado Pago nesse caso; dentro da janela o paciente recebe o texto de sempre.",
+      "INBOX": "Listar modelos de",
+      "TEMPLATE": "Modelo",
+      "NONE": "Nenhum modelo (só texto)",
+      "PARAMETER": "Parâmetro {n}"
+    },
+    "PAYMENTS": {
+      "TITLE": "Pagamentos",
+      "DESCRIPTION": "Cobranças do Mercado Pago que o AI Brain fez para pacientes, das mais novas às mais antigas. Uma consulta paga que o paciente cancelou espera aqui você decidir sobre o reembolso.",
+      "WHEN": "Criada",
+      "PATIENT": "Paciente",
+      "WHAT": "Cobrança",
+      "AMOUNT": "Valor",
+      "STATUS": "Situação",
+      "EMPTY": "Nenhuma cobrança ainda.",
+      "FILTER_ALL": "Todas",
+      "REFUND": "Reembolsar",
+      "CONFIRM_REFUND": "Devolver {amount} a {patient} pelo Mercado Pago? Isso não pode ser desfeito.",
+      "REFUNDED": "Reembolso enviado.",
+      "OPEN_CONVERSATION": "Conversa",
+      "STATUSES": {
+        "pending": "Aguardando pagamento",
+        "approved": "Pago",
+        "refund_requested": "Pago, consulta cancelada",
+        "refunded": "Reembolsado",
+        "expired": "Expirada",
+        "cancelled": "Cancelada",
+        "failed": "Falhou"
+      },
+      "KINDS": {
+        "pix": "Pix",
+        "checkout": "Link"
+      }
     }
   }
 }

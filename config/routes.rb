@@ -97,6 +97,9 @@ Rails.application.routes.draw do
                 post :run_now
               end
             end
+            resources :payments, only: [:index] do
+              post :refund, on: :member
+            end
             resources :conversations, only: [:show], param: :conversation_id do
               post :end_session, on: :member
               post :validate_review, on: :member
