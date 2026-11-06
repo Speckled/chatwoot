@@ -43,6 +43,7 @@ const accountId = computed(() => store.getters.getCurrentAccountId);
 const aiBrain = ref(null);
 const reviewText = ref('');
 const staffAnswers = ref({});
+const saveAsFaq = ref({});
 const aiBusy = ref(false);
 const loadAiBrain = async () => {
   aiBrain.value = null;
@@ -72,7 +73,8 @@ const answerStaffQuestion = async question => {
     await aiBrainConversations.answerStaffQuestion(
       props.chat.id,
       question.id,
-      staffAnswers.value[question.id]
+      staffAnswers.value[question.id],
+      !!saveAsFaq.value[question.id]
     );
     staffAnswers.value = { ...staffAnswers.value, [question.id]: '' };
     await loadAiBrain();
@@ -303,6 +305,10 @@ const copyConversationId = async () => {
             class="block w-full rounded border p-1"
             :placeholder="t('AI_BRAIN.STAFF_QUESTION.PLACEHOLDER')"
           />
+        </label>
+        <label class="flex items-center gap-1 text-xs">
+          <input v-model="saveAsFaq[question.id]" type="checkbox" />
+          {{ t('AI_BRAIN.STAFF_QUESTION.SAVE_AS_FAQ') }}
         </label>
         <button
           type="button"

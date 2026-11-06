@@ -54,7 +54,9 @@ class Api::V1::Accounts::AiBrain::ConversationsController < Api::V1::Accounts::A
     text = params.require(:text).to_s.strip
     return render json: { error: I18n.t('ai_brain.errors.empty_reply') }, status: :unprocessable_entity if text.blank?
 
-    status, delivery = client.post("staff-questions/#{uuid_param!(:question_id)}/answer", operatorId: Current.user.id, text: text)
+    save_as_faq = ActiveModel::Type::Boolean.new.cast(params[:saveAsFaq]) || false
+    status, delivery = client.post("staff-questions/#{uuid_param!(:question_id)}/answer",
+                                   operatorId: Current.user.id, text: text, saveAsFaq: save_as_faq)
     return render_upstream([status, delivery]) unless status == 200
 
     conversation.with_lock { post_staff_answer(conversation, delivery) }

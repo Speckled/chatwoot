@@ -355,7 +355,8 @@
     "STAFF_QUESTION": {
       "ASKED": "The assistant asked the clinic",
       "PLACEHOLDER": "Your answer goes to the patient",
-      "SEND": "Answer the patient"
+      "SEND": "Answer the patient",
+      "SAVE_AS_FAQ": "Also save as an FAQ"
     },
     "ADMIN_ASSISTANT": {
       "OPEN": "Assistant",

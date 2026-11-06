@@ -14,12 +14,10 @@ class AiBrainConversationsAPI extends ApiClient {
     return axios.post(`${this.url}/${id}/validate_review`, { text });
   }
 
-  answerStaffQuestion(id, questionId, text) {
+  answerStaffQuestion(id, questionId, text, saveAsFaq = false) {
     return axios.post(
       `${this.url}/${id}/staff_questions/${questionId}/answer`,
-      {
-        text,
-      }
+      { text, saveAsFaq }
     );
   }
 }

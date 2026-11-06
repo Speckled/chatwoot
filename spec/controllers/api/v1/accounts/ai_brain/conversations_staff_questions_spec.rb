@@ -26,7 +26,7 @@ RSpec.describe 'AI Brain staff question answers', type: :request do
     sent = conversation.messages.where(message_type: :outgoing, private: false)
     expect(sent.pluck(:content)).to eq(['Resposta da clínica: sim.'])
     expect(sent.first.sender).to eq(AiBrain::BotSender.for(account))
-    expect(client).to have_received(:post).with("staff-questions/#{question_id}/answer", operatorId: admin.id, text: 'Sim.').twice
+    expect(client).to have_received(:post).with("staff-questions/#{question_id}/answer", operatorId: admin.id, text: 'Sim.', saveAsFaq: false).twice
     expect(client).to have_received(:confirm_delivery)
       .with(session_id: session_id, outgoing_message_id: outgoing_id, chatwoot_message_id: sent.first.id).twice
   end
