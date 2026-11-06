@@ -356,6 +356,20 @@
       "ASKED": "The assistant asked the clinic",
       "PLACEHOLDER": "Your answer goes to the patient",
       "SEND": "Answer the patient"
+    },
+    "ADMIN_ASSISTANT": {
+      "OPEN": "Assistant",
+      "TITLE": "Admin assistant",
+      "SUBTITLE": "Ask it to change the clinic's setup, or how to do something.",
+      "EMPTY": "Try: \"I want to add an inbox\", \"close the clinic on the 24th\" or \"add Carla, a physiotherapist, without a login\".",
+      "PLACEHOLDER": "Write to the assistant",
+      "SEND": "Send",
+      "THINKING": "The assistant is answering…",
+      "BUSY": "The assistant is still answering an earlier message; try again in a moment.",
+      "APPROVE": "Approve",
+      "DECLINE": "Cancel",
+      "APPROVE_TEXT": "Aprovo.",
+      "DECLINE_TEXT": "Cancele essas propostas."
     }
   }
 }

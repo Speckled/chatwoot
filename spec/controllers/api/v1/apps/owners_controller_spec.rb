@@ -109,4 +109,15 @@ RSpec.describe 'AI Brain owner user changes', type: :request do
       expect(response.parsed_body['error']).to eq('The account has no AI Brain WhatsApp inbox')
     end
   end
+
+  it 'lets an administrator using the dashboard assistant act without a WhatsApp registration, but not be messaged' do
+    manager = create(:user, account: account, role: :administrator)
+
+    post "/api/v1/apps/chatwoot-main/owners/#{manager.id}/messages", headers: headers, params: { text: 'Oi' }, as: :json
+
+    expect(response).to have_http_status(:unprocessable_entity)
+    patch "/api/v1/apps/chatwoot-main/owners/#{manager.id}/users/#{doctor.id}", headers: headers, params: { displayName: 'Dra. Ana' }, as: :json
+    expect(response).to have_http_status(:ok)
+    expect(doctor.reload.display_name).to eq('Dra. Ana')
+  end
 end

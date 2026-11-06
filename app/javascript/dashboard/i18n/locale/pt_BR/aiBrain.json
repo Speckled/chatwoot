@@ -356,6 +356,20 @@
       "ASKED": "O assistente perguntou à clínica",
       "PLACEHOLDER": "Sua resposta vai para o paciente",
       "SEND": "Responder ao paciente"
+    },
+    "ADMIN_ASSISTANT": {
+      "OPEN": "Assistente",
+      "TITLE": "Assistente administrativo",
+      "SUBTITLE": "Peça mudanças na configuração da clínica, ou como fazer algo.",
+      "EMPTY": "Experimente: \"quero adicionar uma caixa de entrada\", \"fecha a clínica no dia 24\" ou \"cadastra a Carla, fisioterapeuta, sem login\".",
+      "PLACEHOLDER": "Escreva para o assistente",
+      "SEND": "Enviar",
+      "THINKING": "O assistente está respondendo…",
+      "BUSY": "O assistente ainda está respondendo uma mensagem anterior; tente de novo em instantes.",
+      "APPROVE": "Aprovar",
+      "DECLINE": "Cancelar",
+      "APPROVE_TEXT": "Aprovo.",
+      "DECLINE_TEXT": "Cancele essas propostas."
     }
   }
 }

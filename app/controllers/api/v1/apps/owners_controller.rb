@@ -52,6 +52,8 @@ class Api::V1::Apps::OwnersController < Api::V1::Apps::BaseController
   def create_message
     return render json: { error: 'text is required' }, status: :unprocessable_entity if params[:text].blank?
 
+    return render json: { error: 'The owner has no WhatsApp number registered' }, status: :unprocessable_entity if @owner.phone_number.blank?
+
     inbox = owner_inbox
     return render json: { error: 'The account has no AI Brain WhatsApp inbox' }, status: :unprocessable_entity unless inbox
 
@@ -63,9 +65,23 @@ class Api::V1::Apps::OwnersController < Api::V1::Apps::BaseController
 
   private
 
+  # An owner registered for the private channel, or an administrator using the admin assistant from the dashboard, who
+  # has no WhatsApp registration and so cannot be messaged.
   def fetch_owner
     @owner = AiBrainOwner.find_by(user_id: params[:user_id])
+    @owner = dashboard_administrator if @owner.nil?
     render json: { error: 'Owner not found' }, status: :not_found unless @owner&.administrator?
+  end
+
+  DashboardAdministrator = Struct.new(:account, :user, :phone_number) do
+    def account_id = account.id
+    def user_id = user.id
+    def administrator? = true
+  end
+
+  def dashboard_administrator
+    account_user = AccountUser.administrator.find_by(user_id: params[:user_id])
+    DashboardAdministrator.new(account_user.account, account_user.user, nil) if account_user
   end
 
   # The inbox the owner wrote to when it is still one of the account's AI Brain WhatsApp inboxes, else the first of them.
