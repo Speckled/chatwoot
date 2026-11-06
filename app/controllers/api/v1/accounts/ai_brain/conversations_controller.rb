@@ -10,6 +10,7 @@ class Api::V1::Accounts::AiBrain::ConversationsController < Api::V1::Accounts::A
       review = reviews.find { |item| item['id'] == state.review_id }
     end
     render json: {
+      staffQuestions: open_staff_questions(conversation),
       state: state&.state || 'bot',
       sessionId: state&.session_id,
       activeWorkflow: state&.active_workflow,
@@ -46,7 +47,41 @@ class Api::V1::Accounts::AiBrain::ConversationsController < Api::V1::Accounts::A
     conversation.with_lock { validate_reply(conversation, text) }
   end
 
+  # Answers a question the bot asked the clinic: the backend records it and words the message, which goes to the patient
+  # as the bot's.
+  def answer_question
+    conversation = find_conversation
+    text = params.require(:text).to_s.strip
+    return render json: { error: I18n.t('ai_brain.errors.empty_reply') }, status: :unprocessable_entity if text.blank?
+
+    status, delivery = client.post("staff-questions/#{uuid_param!(:question_id)}/answer", operatorId: Current.user.id, text: text)
+    return render_upstream([status, delivery]) unless status == 200
+
+    conversation.with_lock { post_staff_answer(conversation, delivery) }
+    head :no_content
+  end
+
   private
+
+  def open_staff_questions(conversation)
+    status, questions = client.get("conversations/#{conversation.id}/staff-questions")
+    status == 200 ? questions.select { |question| question['status'] == 'open' } : []
+  rescue AiBrain::Client::UnavailableError
+    []
+  end
+
+  def post_staff_answer(conversation, delivery)
+    question_id = delivery.fetch('questionId')
+    message = conversation.messages.find_by(["additional_attributes ->> 'ai_brain_staff_question_id' = ?", question_id]) ||
+              conversation.messages.create!(account: Current.account, inbox: conversation.inbox, message_type: :outgoing,
+                                            content: delivery.fetch('textToSend'), sender: AiBrain::BotSender.for(Current.account),
+                                            additional_attributes: { ai_brain_staff_question_id: question_id,
+                                                                     ai_brain_session_id: delivery['sessionId'],
+                                                                     ai_brain_outgoing_id: delivery['outgoingMessageId'] }.compact)
+    return if delivery['outgoingMessageId'].blank?
+
+    client.confirm_delivery(session_id: delivery['sessionId'], outgoing_message_id: delivery['outgoingMessageId'], chatwoot_message_id: message.id)
+  end
 
   def find_conversation
     Current.account.conversations.find_by!(display_id: params[:conversation_id])

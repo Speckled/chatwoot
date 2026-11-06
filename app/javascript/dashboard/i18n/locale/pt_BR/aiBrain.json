@@ -351,6 +351,11 @@
         "agent": "Agente",
         "provider": "Sem login"
       }
+    },
+    "STAFF_QUESTION": {
+      "ASKED": "O assistente perguntou à clínica",
+      "PLACEHOLDER": "Sua resposta vai para o paciente",
+      "SEND": "Responder ao paciente"
     }
   }
 }

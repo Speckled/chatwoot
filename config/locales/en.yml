@@ -44,6 +44,7 @@ en:
   ai_brain:
     review_note: "AI Brain review requested. Proposed reply: %{reply}. Reason: %{reason}"
     handoff_note: "AI Brain handed this conversation to reception. Reason: %{reason}"
+    staff_question_note: "AI Brain asked the clinic: %{question}. Answer it at the top of this conversation; the answer goes to the patient."
     errors:
       unavailable: "AI Brain is unavailable. A receptionist must handle this conversation."
       unknown_outcome: "AI Brain returned an unknown outcome. A receptionist must handle this conversation."

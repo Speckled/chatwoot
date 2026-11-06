@@ -42,6 +42,7 @@ const currentChat = computed(() => store.getters.getSelectedChat);
 const accountId = computed(() => store.getters.getCurrentAccountId);
 const aiBrain = ref(null);
 const reviewText = ref('');
+const staffAnswers = ref({});
 const aiBusy = ref(false);
 const loadAiBrain = async () => {
   aiBrain.value = null;
@@ -58,6 +59,29 @@ watch(
   loadAiBrain,
   { immediate: true }
 );
+// A question the bot asks the clinic arrives with a private note, without a status change.
+watch(
+  () => props.chat.messages?.length,
+  (length, previous) => {
+    if (previous !== undefined && length !== previous) loadAiBrain();
+  }
+);
+const answerStaffQuestion = async question => {
+  aiBusy.value = true;
+  try {
+    await aiBrainConversations.answerStaffQuestion(
+      props.chat.id,
+      question.id,
+      staffAnswers.value[question.id]
+    );
+    staffAnswers.value = { ...staffAnswers.value, [question.id]: '' };
+    await loadAiBrain();
+  } catch (error) {
+    useAlert(t('AI_BRAIN.ERROR'));
+  } finally {
+    aiBusy.value = false;
+  }
+};
 const endHumanSession = async () => {
   aiBusy.value = true;
   try {
@@ -264,6 +288,29 @@ const copyConversationId = async () => {
           @click="validateReply"
         >
           {{ t('AI_BRAIN.VALIDATE_SEND') }}
+        </button>
+      </div>
+      <div
+        v-for="question in aiBrain?.staffQuestions || []"
+        :key="question.id"
+        class="flex max-w-md flex-col gap-1"
+      >
+        <label class="text-xs"
+          >{{ t('AI_BRAIN.STAFF_QUESTION.ASKED') }}: {{ question.question }}
+          <textarea
+            v-model="staffAnswers[question.id]"
+            rows="2"
+            class="block w-full rounded border p-1"
+            :placeholder="t('AI_BRAIN.STAFF_QUESTION.PLACEHOLDER')"
+          />
+        </label>
+        <button
+          type="button"
+          :disabled="aiBusy || !(staffAnswers[question.id] || '').trim()"
+          class="rounded border px-2 py-1"
+          @click="answerStaffQuestion(question)"
+        >
+          {{ t('AI_BRAIN.STAFF_QUESTION.SEND') }}
         </button>
       </div>
       <MoreActions :conversation-id="currentChat.id" />

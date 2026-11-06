@@ -109,6 +109,7 @@ Rails.application.routes.draw do
             resources :conversations, only: [:show], param: :conversation_id do
               post :end_session, on: :member
               post :validate_review, on: :member
+              post 'staff_questions/:question_id/answer', on: :member, action: :answer_question
             end
             resources :test_conversations, only: [:index, :show, :create] do
               get :contacts, on: :collection

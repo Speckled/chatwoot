@@ -72,6 +72,7 @@ class AiBrain::ResponseJob < ApplicationJob
     case result.fetch('outcome').to_s
     when '0', 'Reply'
       deliver_and_confirm(conversation, message, result, client)
+      note_staff_question(conversation, result, client)
     when '1', 'AwaitingReview'
       request_review(conversation, message, state, result, client)
     when '2', 'Handoff'
@@ -120,6 +121,23 @@ class AiBrain::ResponseJob < ApplicationJob
     delivery.deliver!(result.fetch('textToSend'), result['outgoingMessageId'], content_type: content_type)
     follow_ups = result['followUpMessages']
     AiBrain::FollowUpJob.schedule(conversation.id, message.id, session_id, follow_ups) if follow_ups.present?
+  end
+
+  # The bot asked the clinic instead of handing off: the conversation stays with it, and a note tells whoever reads
+  # the conversation what to answer.
+  def note_staff_question(conversation, result, client)
+    question_id = result['staffQuestionId']
+    return if question_id.blank?
+
+    status, questions = client.get("conversations/#{conversation.id}/staff-questions")
+    question = questions.find { |candidate| candidate['id'] == question_id } if status == 200
+    return unless question
+
+    conversation.messages.create!(account: conversation.account, inbox: conversation.inbox, message_type: :outgoing, private: true,
+                                  content: I18n.t('ai_brain.staff_question_note', question: question['question']))
+  rescue AiBrain::Client::UnavailableError => e
+    # The reply already went out; only the note is missing, and the header still lists the question.
+    Rails.logger.warn("AI Brain staff question note skipped for conversation #{conversation.id}: #{e.message}")
   end
 
   def handoff(conversation, text)

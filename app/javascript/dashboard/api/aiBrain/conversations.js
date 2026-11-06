@@ -13,6 +13,15 @@ class AiBrainConversationsAPI extends ApiClient {
   validateReview(id, text) {
     return axios.post(`${this.url}/${id}/validate_review`, { text });
   }
+
+  answerStaffQuestion(id, questionId, text) {
+    return axios.post(
+      `${this.url}/${id}/staff_questions/${questionId}/answer`,
+      {
+        text,
+      }
+    );
+  }
 }
 
 export default new AiBrainConversationsAPI();

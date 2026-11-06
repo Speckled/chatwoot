@@ -20,6 +20,7 @@ pt_BR:
   ai_brain:
     review_note: "Revisão solicitada pela AI Brain. Resposta proposta: %{reply}. Motivo: %{reason}"
     handoff_note: "A AI Brain transferiu esta conversa para a recepção. Motivo: %{reason}"
+    staff_question_note: "A AI Brain perguntou à clínica: %{question}. Responda no topo desta conversa; a resposta vai para o paciente."
     errors:
       unavailable: "A AI Brain está indisponível. A recepção deve atender esta conversa."
       unknown_outcome: "A AI Brain retornou uma resposta desconhecida. A recepção deve atender esta conversa."
