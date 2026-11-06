@@ -55,6 +55,9 @@ Rails.application.routes.draw do
       delete 'apps/:app_id/owners/:user_id/users/:chatwoot_user_id', to: 'apps/owners#remove_user'
       post 'apps/:app_id/owners/:user_id/messages', to: 'apps/owners#create_message'
       post 'apps/:app_id/inboxes/:inbox_id/messages', to: 'apps/inbox_messages#create'
+      post 'apps/:app_id/accounts/:account_id/staff_contacts', to: 'apps/staff#create_contact'
+      put 'apps/:app_id/accounts/:account_id/assistants/:user_id', to: 'apps/staff#upsert_assistant'
+      delete 'apps/:app_id/accounts/:account_id/assistants/:user_id', to: 'apps/staff#destroy_assistant'
 
       # ----------------------------------
       # start of account scoped api routes
@@ -96,6 +99,9 @@ Rails.application.routes.draw do
                 get :deliveries
                 post :run_now
               end
+            end
+            resources :staff, only: [:index, :create, :destroy] do
+              put :capabilities, on: :member
             end
             resources :payments, only: [:index] do
               post :refund, on: :member

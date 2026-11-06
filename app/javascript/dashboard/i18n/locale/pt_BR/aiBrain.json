@@ -328,6 +328,29 @@
         "pix": "Pix",
         "checkout": "Link"
       }
+    },
+    "STAFF": {
+      "TITLE": "Equipe",
+      "DESCRIPTION": "Todos que trabalham com a clínica, com ou sem acesso ao Chatwoot, e o que cada um pode fazer. Só os responsáveis pela clínica alteram isso.",
+      "ADD_PROVIDER": "Adicionar alguém sem login",
+      "PROVIDER_HINT": "Para pessoas com quem a clínica só fala pelo WhatsApp, como um prestador de serviço. Elas nunca recebem login no Chatwoot; o número fica marcado como equipe, e a IA nunca as trata como paciente.",
+      "NAME": "Nome",
+      "EMAIL": "Email",
+      "WHATSAPP": "WhatsApp com código do país",
+      "LOGIN": "Acesso ao Chatwoot",
+      "NO_LOGIN": "Sem login",
+      "OWNER": "Responsável",
+      "RESPONDER": "Responde dúvidas de pacientes",
+      "ASSISTANT": "Assistente no WhatsApp",
+      "BOOKABLE": "Pacientes agendam",
+      "REMOVE": "Remover",
+      "CONFIRM_REMOVE": "Tirar {name} da equipe? O cadastro fica guardado como inativo.",
+      "HINT": "Responsável e assistente no WhatsApp são para administradores. Para quem tem login, o time no Chatwoot decide se os pacientes agendam com a pessoa.",
+      "ROLES": {
+        "administrator": "Administrador",
+        "agent": "Agente",
+        "provider": "Sem login"
+      }
     }
   }
 }

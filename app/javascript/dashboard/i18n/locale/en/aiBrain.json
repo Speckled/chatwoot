@@ -328,6 +328,29 @@
         "pix": "Pix",
         "checkout": "Link"
       }
+    },
+    "STAFF": {
+      "TITLE": "Staff",
+      "DESCRIPTION": "Everyone who works with the clinic, with or without a Chatwoot login, and what each one may do. Only owners of the clinic change these.",
+      "ADD_PROVIDER": "Add someone without a login",
+      "PROVIDER_HINT": "For people the clinic only messages on WhatsApp, such as a service provider. They never get a Chatwoot login; their number is marked as staff, so the AI never treats them as a patient.",
+      "NAME": "Name",
+      "EMAIL": "Email",
+      "WHATSAPP": "WhatsApp with country code",
+      "LOGIN": "Chatwoot login",
+      "NO_LOGIN": "No login",
+      "OWNER": "Owner",
+      "RESPONDER": "Answers patients' questions",
+      "ASSISTANT": "Assistant on WhatsApp",
+      "BOOKABLE": "Patients book them",
+      "REMOVE": "Remove",
+      "CONFIRM_REMOVE": "Take {name} out of the team? Their record is kept, marked inactive.",
+      "HINT": "Owner and the WhatsApp assistant are for administrators. For people who log in, whether patients book them comes from their Chatwoot team.",
+      "ROLES": {
+        "administrator": "Administrator",
+        "agent": "Agent",
+        "provider": "No login"
+      }
     }
   }
 }
