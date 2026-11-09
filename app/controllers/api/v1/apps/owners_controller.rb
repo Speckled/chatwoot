@@ -2,19 +2,16 @@
 class Api::V1::Apps::OwnersController < Api::V1::Apps::BaseController
   before_action :fetch_owner
 
-  # Brings someone into a team of the owner's account: an existing member is reused, anyone else is invited by email.
+  # Brings someone into the owner's account, as an agent or an administrator, and into a team when one is given: an
+  # existing member is reused, anyone else is invited by email.
   def create_user
-    name, email = params.values_at(:name, :email)
-    return render json: { error: 'name and email are required' }, status: :unprocessable_entity if name.blank? || email.blank?
+    error = create_user_error
+    return render json: { error: error }, status: :unprocessable_entity if error
 
-    account = @owner.account
-    team = account.teams.find_by(id: params[:teamId])
-    return render json: { error: 'The team does not exist in this account' }, status: :unprocessable_entity unless team
-
-    user = account.users.from_email(email)
+    user = @owner.account.users.from_email(params[:email])
     invited = user.nil?
-    user ||= AgentBuilder.new(email: email, name: name, inviter: @owner.user, account: account, role: :agent).perform
-    team.add_members([user.id]) unless team.members.exists?(user.id)
+    user ||= invite_user
+    add_to_team(user) if params[:teamId].present?
     store_whatsapp_number(user)
     render json: { userId: user.id, invited: invited }
   rescue AgentBuilder::LimitExceededError, ActiveRecord::RecordInvalid => e
@@ -156,5 +153,25 @@ class Api::V1::Apps::OwnersController < Api::V1::Apps::BaseController
     return if number.blank?
 
     user.update!(custom_attributes: user.custom_attributes.merge('whatsapp_number' => number))
+  end
+
+  def create_user_error
+    return 'name and email are required' if params[:name].blank? || params[:email].blank?
+    return 'The role must be agent or administrator' unless AccountUser.roles.key?(new_user_role)
+
+    'The team does not exist in this account' if params[:teamId].present? && !@owner.account.teams.exists?(params[:teamId])
+  end
+
+  def invite_user
+    AgentBuilder.new(email: params[:email], name: params[:name], inviter: @owner.user, account: @owner.account, role: new_user_role).perform
+  end
+
+  def add_to_team(user)
+    team = @owner.account.teams.find(params[:teamId])
+    team.add_members([user.id]) unless team.members.exists?(user.id)
+  end
+
+  def new_user_role
+    params[:role].presence || 'agent'
   end
 end
