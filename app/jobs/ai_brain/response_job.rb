@@ -6,10 +6,11 @@ class AiBrain::ResponseJob < ApplicationJob
     return unless message&.incoming? && message.notifiable? && message.text?
 
     conversation = message.conversation
-    conversation.with_lock { process_message(message, conversation) }
+    # Jobs run in the default locale; the notes left for reception are written in the account's language.
+    I18n.with_locale(conversation.account.locale) { conversation.with_lock { process_message(message, conversation) } }
   rescue AiBrain::Client::UnavailableError => e
     Rails.logger.warn("AI Brain unavailable for message #{message_id}: #{e.message}")
-    unavailable_handoff(conversation) if conversation
+    I18n.with_locale(conversation.account.locale) { unavailable_handoff(conversation) } if conversation
   ensure
     Current.executed_by = nil
   end

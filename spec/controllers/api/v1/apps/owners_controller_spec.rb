@@ -15,6 +15,24 @@ RSpec.describe 'AI Brain owner user changes', type: :request do
 
   before { AiBrainOwner.create!(account: account, user: owner_user, phone_number: '+5551995684103') }
 
+  it 'invites someone into a team, or as an administrator with no team' do
+    post base, headers: headers, params: { name: 'Dra. Bia', email: 'bia@clinica.test', teamId: doctors.id }, as: :json
+    bia = User.find(response.parsed_body['userId'])
+    expect(doctors.members).to include(bia)
+    expect(account.account_users.find_by(user: bia)).to be_agent
+
+    post base, headers: headers, params: { name: 'Gestor', email: 'gestor@clinica.test', role: 'administrator' }, as: :json
+    manager = User.find(response.parsed_body['userId'])
+    expect(response.parsed_body['invited']).to be(true)
+    expect(manager.teams).to be_empty
+    expect(account.account_users.find_by(user: manager)).to be_administrator
+
+    post base, headers: headers, params: { name: 'X', email: 'x@clinica.test', teamId: 0 }, as: :json
+    expect(response.parsed_body['error']).to eq('The team does not exist in this account')
+    post base, headers: headers, params: { name: 'X', email: 'x@clinica.test', role: 'owner' }, as: :json
+    expect(response.parsed_body['error']).to eq('The role must be agent or administrator')
+  end
+
   it 'changes the name, WhatsApp number, teams and role' do
     reception.add_members([doctor.id])
 

@@ -167,20 +167,20 @@ onMounted(load);
             </td>
             <td class="py-3 ltr:pr-4 rtl:pl-4">
               <Switch
-                :model-value="member.isOwner"
+                v-model="member.isOwner"
                 :disabled="member.role !== 'administrator'"
                 @change="value => setCapability(member, 'isOwner', value)"
               />
             </td>
             <td class="py-3 ltr:pr-4 rtl:pl-4">
               <Switch
-                :model-value="member.isResponder"
+                v-model="member.isResponder"
                 @change="value => setCapability(member, 'isResponder', value)"
               />
             </td>
             <td class="py-3 ltr:pr-4 rtl:pl-4">
               <Switch
-                :model-value="member.hasAssistantAccess"
+                v-model="member.hasAssistantAccess"
                 :disabled="member.role !== 'administrator'"
                 @change="
                   value => setCapability(member, 'assistantAccess', value)
@@ -189,7 +189,7 @@ onMounted(load);
             </td>
             <td class="py-3 ltr:pr-4 rtl:pl-4">
               <Switch
-                :model-value="member.requiresCalendar"
+                v-model="member.requiresCalendar"
                 :disabled="member.hasLogin"
                 @change="value => setCapability(member, 'bookable', value)"
               />
