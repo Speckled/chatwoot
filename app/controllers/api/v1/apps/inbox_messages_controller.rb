@@ -73,12 +73,21 @@ class Api::V1::Apps::InboxMessagesController < Api::V1::Apps::BaseController
 
   # The contact's own thread in the inbox comes first: its source id is the number WhatsApp reported, which can differ
   # from the stored phone number, and their replies arrive there. Instagram cannot message someone who never wrote.
+  # A WhatsApp contact can have two threads in one inbox, one under the phone number and one under WhatsApp's business
+  # scoped user id, created together. The one they last wrote in comes first: a message in the other is outside the
+  # 24-hour window, and Chatwoot refuses to send it.
   def find_or_create_contact_inbox(contact)
-    existing = @inbox.contact_inboxes.where(contact: contact).order(updated_at: :desc).first
+    contact_inboxes = @inbox.contact_inboxes.where(contact: contact)
+    existing = last_written_contact_inbox(contact_inboxes) || contact_inboxes.order(updated_at: :desc).first
     return existing if existing
     raise InvalidRequestError, 'Instagram can only message someone who has written to this inbox' unless whatsapp?
 
     ContactInboxBuilder.new(contact: contact, inbox: @inbox).perform
+  end
+
+  def last_written_contact_inbox(contact_inboxes)
+    conversations = Conversation.where(contact_inbox_id: contact_inboxes.select(:id))
+    Message.incoming.where(conversation_id: conversations.select(:id)).reorder(created_at: :desc).first&.conversation&.contact_inbox
   end
 
   def find_or_start_conversation(contact_inbox)
