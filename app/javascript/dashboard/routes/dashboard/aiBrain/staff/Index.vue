@@ -13,7 +13,7 @@ import staffAPI from 'dashboard/api/aiBrain/staff';
 
 // Everyone who works with the clinic: Chatwoot users and people without a login, such as a service provider the clinic
 // only messages on WhatsApp. Owners of the clinic change what each one may do.
-const { t } = useI18n();
+const { t, te } = useI18n();
 const staff = ref([]);
 const loading = ref(true);
 const saving = ref(false);
@@ -27,7 +27,13 @@ const emptyProvider = () => ({
 });
 const provider = ref(emptyProvider());
 
-const errorOf = error => error?.response?.data?.error || t('AI_BRAIN.ERROR');
+// The backend names each refusal with a code, so it shows in the user's language; its English text is the fallback.
+const errorOf = error => {
+  const { code, values, error: message } = error?.response?.data || {};
+  const key = `AI_BRAIN.STAFF.ERRORS.${code}`;
+  if (code && te(key)) return t(key, values || {});
+  return message || t('AI_BRAIN.ERROR');
+};
 const load = async () => {
   try {
     staff.value = (await staffAPI.get()).data;

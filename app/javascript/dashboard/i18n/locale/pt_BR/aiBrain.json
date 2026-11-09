@@ -350,6 +350,24 @@
         "administrator": "Administrador",
         "agent": "Agente",
         "provider": "Sem login"
+      },
+      "ERRORS": {
+        "NAME_MISSING": "Informe o nome da pessoa.",
+        "INVALID_WHATSAPP": "'{value}' não é um WhatsApp com código do país, como +5511999998888.",
+        "INVALID_EMAIL": "'{value}' não é um email válido.",
+        "ALREADY_REGISTERED": "{name} já tem esse WhatsApp ou email.",
+        "UNKNOWN_STAFF": "Essa pessoa não está mais na equipe. Recarregue a página.",
+        "HAS_LOGIN": "{name} tem login no Chatwoot; remova pelas configurações de agentes do Chatwoot.",
+        "NOT_OWNER": "Só um responsável pela clínica altera o que cada pessoa da equipe pode fazer.",
+        "NO_OWNER_YET": "A clínica ainda não tem responsável; um administrador precisa definir o primeiro.",
+        "OWNER_NOT_ADMINISTRATOR": "{name} precisa ser administrador no Chatwoot para ser responsável pela clínica.",
+        "ONLY_OWNER": "{name} é o único responsável pela clínica; defina outro responsável antes.",
+        "ASSISTANT_NOT_ADMINISTRATOR": "O assistente no WhatsApp é para administradores; {name} não é.",
+        "ASSISTANT_NEEDS_WHATSAPP": "{name} precisa ter um WhatsApp cadastrado antes.",
+        "NO_CHATWOOT_ACCOUNT": "{name} não tem conta no Chatwoot.",
+        "RESPONDER_NEEDS_WHATSAPP": "{name} precisa ter um WhatsApp para responder dúvidas de pacientes.",
+        "BOOKABLE_BY_TEAM": "{name} tem login no Chatwoot, então é o time no Chatwoot que decide se os pacientes agendam com essa pessoa.",
+        "NOTHING_TO_CHANGE": "Nada muda para {name}."
       }
     }
   }
