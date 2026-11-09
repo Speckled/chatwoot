@@ -59,6 +59,19 @@ RSpec.describe 'AI Brain inbox messages API', type: :request do
     expect(conversation.ai_brain_conversation.state).to eq('human')
   end
 
+  it 'uses the thread the contact last wrote in when WhatsApp gave them a user id thread as well' do
+    contact = create(:contact, account: account, phone_number: '+5511988887777')
+    phone_thread = create(:contact_inbox, contact: contact, inbox: inbox, source_id: '551188887777')
+    written = create(:conversation, account: account, inbox: inbox, contact: contact, contact_inbox: phone_thread)
+    create(:message, account: account, inbox: inbox, conversation: written, message_type: :incoming)
+    user_id_thread = create(:contact_inbox, contact: contact, inbox: inbox, source_id: 'BR.1587652006711529')
+    create(:conversation, account: account, inbox: inbox, contact: contact, contact_inbox: user_id_thread)
+
+    post url, headers: headers, params: body, as: :json
+
+    expect(response.parsed_body['chatwootConversationId']).to eq(written.id)
+  end
+
   it 'hands a resolved conversation back to the AI when the message asks for its replies' do
     contact = create(:contact, account: account, phone_number: '+5511988887777')
     contact_inbox = create(:contact_inbox, contact: contact, inbox: inbox, source_id: '5511988887777')
