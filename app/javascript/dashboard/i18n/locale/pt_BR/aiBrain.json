@@ -377,6 +377,7 @@
     },
     "ADMIN_ASSISTANT": {
       "OPEN": "Assistente",
+      "CLOSE": "Fechar",
       "TITLE": "Assistente administrativo",
       "SUBTITLE": "Peça mudanças na configuração da clínica, ou como fazer algo.",
       "EMPTY": "Experimente: \"quero adicionar uma caixa de entrada\", \"fecha a clínica no dia 24\" ou \"cadastra a Carla, fisioterapeuta, sem login\".",

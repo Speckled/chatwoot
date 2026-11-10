@@ -377,6 +377,7 @@
     },
     "ADMIN_ASSISTANT": {
       "OPEN": "Assistant",
+      "CLOSE": "Close",
       "TITLE": "Admin assistant",
       "SUBTITLE": "Ask it to change the clinic's setup, or how to do something.",
       "EMPTY": "Try: \"I want to add an inbox\", \"close the clinic on the 24th\" or \"add Carla, a physiotherapist, without a login\".",
