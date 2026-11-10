@@ -48,6 +48,23 @@ const toggle = () => {
 const navigate = card => {
   router.push(frontendURL(`accounts/${accountId.value}/${card.path}`));
 };
+// A turn can take longer than a web request may, so the reply is asked for until it is ready. The backend gives up on a
+// turn after a minute; the wait leaves room for the job queue.
+const REPLY_POLL_INTERVAL_MS = 1500;
+const REPLY_MAX_WAIT_MS = 120000;
+const waitForReply = async requestId => {
+  const deadline = Date.now() + REPLY_MAX_WAIT_MS;
+  while (Date.now() < deadline) {
+    // eslint-disable-next-line no-await-in-loop
+    await new Promise(resolve => {
+      setTimeout(resolve, REPLY_POLL_INTERVAL_MS);
+    });
+    // eslint-disable-next-line no-await-in-loop
+    const response = await adminAssistantAPI.reply(requestId);
+    if (response.status !== 202) return response.data;
+  }
+  throw new Error('The assistant did not answer in time');
+};
 const send = async value => {
   const body = (value ?? text.value).trim();
   if (!body || sending.value) return;
@@ -56,7 +73,8 @@ const send = async value => {
   sending.value = true;
   scrollDown();
   try {
-    const reply = (await adminAssistantAPI.send(body)).data;
+    const { requestId } = (await adminAssistantAPI.send(body)).data;
+    const reply = await waitForReply(requestId);
     messages.value.push({
       role: 'assistant',
       text: reply.textToSend,

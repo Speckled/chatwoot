@@ -11,8 +11,13 @@ class AdminAssistantAPI extends ApiClient {
     return axios.get(this.url, { params: { limit: 50 } });
   }
 
+  // Starts a turn; the reply is read with reply(requestId), which answers 202 until it is ready.
   send(text) {
     return axios.post(this.url, { text });
+  }
+
+  reply(requestId) {
+    return axios.get(`${this.url}/${requestId}`);
   }
 }
 
