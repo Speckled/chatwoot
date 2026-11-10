@@ -47,7 +47,7 @@ export function useFacebookPageConnect() {
               : null
           );
         },
-        { scope: buildFacebookLoginScopes() }
+        { scope: buildFacebookLoginScopes({ includeInstagramScopes: true }) }
       );
     });
 

@@ -55,7 +55,8 @@ class Channel::FacebookPage < ApplicationRecord
       ]
     )
   rescue StandardError => e
-    Rails.logger.debug { "Rescued: #{e.inspect}" }
+    # Meta may refuse a field (e.g. standby); keep connecting but make it visible.
+    Rails.logger.warn { "Facebook Page subscription failed for page #{page_id}: #{e.inspect}" }
     true
   end
 
