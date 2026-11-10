@@ -42,4 +42,17 @@ describe AiBrain::ResponseJob do
       expect(conversation.messages.outgoing.last).to have_attributes(content: farewell, content_type: 'text')
     end
   end
+
+  it "writes the handoff note for reception in the account's language" do
+    account.update!(locale: 'pt_BR')
+    allow(client).to receive(:send_session_message).and_return(
+      [200, { 'outcome' => 2, 'sessionId' => 'session-1', 'outgoingMessageId' => 'outgoing-1',
+              'textToSend' => 'Vou encaminhar sua mensagem para nossa recepção.', 'reason' => 'pergunta fora do FAQ' }]
+    )
+
+    described_class.perform_now(goodbye.id)
+
+    expect(conversation.messages.where(private: true).last.content)
+      .to eq('A AI Brain transferiu esta conversa para a recepção. Motivo: pergunta fora do FAQ')
+  end
 end
