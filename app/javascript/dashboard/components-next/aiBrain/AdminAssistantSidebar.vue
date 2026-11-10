@@ -131,7 +131,7 @@ const onKeydown = event => {
     </button>
     <aside
       v-else
-      class="fixed inset-y-0 end-0 z-40 flex h-full w-full max-w-sm flex-col border-s border-n-weak bg-n-solid-1 shadow-xl md:static md:z-auto md:w-[22.5rem] md:min-w-[22.5rem] md:max-w-none md:shadow-none"
+      class="fixed inset-y-0 end-0 z-50 flex h-full w-full max-w-sm flex-col border-s border-n-weak bg-n-solid-1 shadow-xl md:static md:z-auto md:w-[22.5rem] md:min-w-[22.5rem] md:max-w-none md:shadow-none"
     >
       <header
         class="flex items-center justify-between border-b border-n-weak px-4 py-3"
