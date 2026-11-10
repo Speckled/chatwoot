@@ -100,7 +100,7 @@ Rails.application.routes.draw do
                 post :run_now
               end
             end
-            resources :admin_assistant, only: [:index, :create]
+            resources :admin_assistant, only: [:index, :create, :show]
             resources :staff, only: [:index, :create, :destroy] do
               put :capabilities, on: :member
             end

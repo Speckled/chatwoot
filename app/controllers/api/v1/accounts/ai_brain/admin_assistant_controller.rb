@@ -5,13 +5,24 @@ class Api::V1::Accounts::AiBrain::AdminAssistantController < Api::V1::Accounts::
     render_upstream(client.get("owner/#{Current.user.id}/messages", params.permit(:limit).to_h.compact))
   end
 
+  # The reply to a message sent with create: 202 while the assistant is still answering, then the backend's answer.
+  def show
+    reply = AiBrain::AdminAssistantJob.reply(Current.user.id, uuid_param!)
+    return head :accepted unless reply
+
+    render json: reply['body'] || {}, status: reply['status']
+  end
+
   def create
     text = params.require(:text).to_s.strip
     return render json: { error: I18n.t('ai_brain.errors.empty_message') }, status: :unprocessable_entity if text.blank?
 
-    render_upstream(client.post('owner/messages', ownerUserId: Current.user.id, phoneNumber: concurrency_phone, text: text,
-                                                  whatsAppMessageId: "dashboard-#{SecureRandom.uuid}", messageType: 'text',
-                                                  channel: 'dashboard'))
+    request_id = SecureRandom.uuid
+    AiBrain::AdminAssistantJob.perform_later(Current.user.id, request_id,
+                                             { ownerUserId: Current.user.id, phoneNumber: concurrency_phone, text: text,
+                                               whatsAppMessageId: "dashboard-#{request_id}", messageType: 'text',
+                                               channel: 'dashboard' })
+    render json: { requestId: request_id }, status: :accepted
   end
 
   private

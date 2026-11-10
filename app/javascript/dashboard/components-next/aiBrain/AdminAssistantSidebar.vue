@@ -1,23 +1,28 @@
 <script setup>
-import { computed, nextTick, ref } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { useAdmin } from 'dashboard/composables/useAdmin';
+import { useUISettings } from 'dashboard/composables/useUISettings';
 import Button from 'dashboard/components-next/button/Button.vue';
 import adminAssistantAPI from 'dashboard/api/aiBrain/adminAssistant';
 import { frontendURL } from 'dashboard/helper/URLHelper';
 
-// The admin assistant on every dashboard page: ask it to change the clinic's setup, or how to do something, and it
-// proposes the change or opens the page beside the chat. Approving a proposal sends an ordinary answer, so it goes
-// through the same review and confirmation as on WhatsApp.
+// The admin assistant on every dashboard page, in a sidebar on the right: ask it to change the clinic's setup, or how to
+// do something, and it proposes the change or opens the page beside the chat. On wider screens the page shrinks to make
+// room, as with Copilot; on a phone the sidebar covers it. It stays open across pages and reloads. Approving a proposal
+// sends an ordinary answer, so it goes through the same review and confirmation as on WhatsApp.
 const { t } = useI18n();
 const router = useRouter();
 const store = useStore();
 const { isAdmin } = useAdmin();
 const accountId = computed(() => store.getters.getCurrentAccountId);
 
-const open = ref(false);
+const { uiSettings, updateUISettings } = useUISettings();
+const open = computed(
+  () => isAdmin.value && !!uiSettings.value?.is_admin_assistant_open
+);
 const loaded = ref(false);
 const sending = ref(false);
 const text = ref('');
@@ -42,11 +47,34 @@ const load = async () => {
   scrollDown();
 };
 const toggle = () => {
-  open.value = !open.value;
-  if (open.value && !loaded.value) load();
+  updateUISettings({ is_admin_assistant_open: !open.value });
 };
+watch(
+  open,
+  isOpen => {
+    if (isOpen && !loaded.value) load();
+  },
+  { immediate: true }
+);
 const navigate = card => {
   router.push(frontendURL(`accounts/${accountId.value}/${card.path}`));
+};
+// A turn can take longer than a web request may, so the reply is asked for until it is ready. The backend gives up on a
+// turn after a minute; the wait leaves room for the job queue.
+const REPLY_POLL_INTERVAL_MS = 1500;
+const REPLY_MAX_WAIT_MS = 120000;
+const waitForReply = async requestId => {
+  const deadline = Date.now() + REPLY_MAX_WAIT_MS;
+  while (Date.now() < deadline) {
+    // eslint-disable-next-line no-await-in-loop
+    await new Promise(resolve => {
+      setTimeout(resolve, REPLY_POLL_INTERVAL_MS);
+    });
+    // eslint-disable-next-line no-await-in-loop
+    const response = await adminAssistantAPI.reply(requestId);
+    if (response.status !== 202) return response.data;
+  }
+  throw new Error('The assistant did not answer in time');
 };
 const send = async value => {
   const body = (value ?? text.value).trim();
@@ -56,7 +84,8 @@ const send = async value => {
   sending.value = true;
   scrollDown();
   try {
-    const reply = (await adminAssistantAPI.send(body)).data;
+    const { requestId } = (await adminAssistantAPI.send(body)).data;
+    const reply = await waitForReply(requestId);
     messages.value.push({
       role: 'assistant',
       text: reply.textToSend,
@@ -90,7 +119,7 @@ const onKeydown = event => {
 </script>
 
 <template>
-  <div v-if="isAdmin">
+  <template v-if="isAdmin">
     <button
       v-if="!open"
       type="button"
@@ -102,7 +131,7 @@ const onKeydown = event => {
     </button>
     <aside
       v-else
-      class="fixed inset-y-0 end-0 z-50 flex w-full max-w-sm flex-col border-s border-n-weak bg-n-solid-1 shadow-xl"
+      class="fixed inset-y-0 end-0 z-50 flex h-full w-full max-w-sm flex-col border-s border-n-weak bg-n-solid-1 shadow-xl md:static md:z-auto md:w-[22.5rem] md:min-w-[22.5rem] md:max-w-none md:shadow-none"
     >
       <header
         class="flex items-center justify-between border-b border-n-weak px-4 py-3"
@@ -121,7 +150,7 @@ const onKeydown = event => {
           color="slate"
           size="sm"
           icon="i-lucide-x"
-          :aria-label="t('AI_BRAIN.CANCEL')"
+          :aria-label="t('AI_BRAIN.ADMIN_ASSISTANT.CLOSE')"
           @click="toggle"
         />
       </header>
@@ -209,5 +238,5 @@ const onKeydown = event => {
         </div>
       </footer>
     </aside>
-  </div>
+  </template>
 </template>

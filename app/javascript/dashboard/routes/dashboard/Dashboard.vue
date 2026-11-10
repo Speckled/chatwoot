@@ -22,7 +22,7 @@ const FloatingCallWidget = defineAsyncComponent(
 );
 
 import CopilotLauncher from 'dashboard/components-next/copilot/CopilotLauncher.vue';
-import AdminAssistantDrawer from 'dashboard/components-next/aiBrain/AdminAssistantDrawer.vue';
+import AdminAssistantSidebar from 'dashboard/components-next/aiBrain/AdminAssistantSidebar.vue';
 import CopilotContainer from 'dashboard/components/copilot/CopilotContainer.vue';
 
 import MobileSidebarLauncher from 'dashboard/components-next/sidebar/MobileSidebarLauncher.vue';
@@ -36,7 +36,7 @@ export default {
     AddAccountModal,
     UpgradePage,
     CopilotLauncher,
-    AdminAssistantDrawer,
+    AdminAssistantSidebar,
     CopilotContainer,
     FloatingCallWidget,
     MobileSidebarLauncher,
@@ -157,7 +157,7 @@ export default {
       <template v-if="!showUpgradePage">
         <router-view />
         <CopilotLauncher />
-        <AdminAssistantDrawer />
+        <AdminAssistantSidebar />
         <MobileSidebarLauncher
           :is-mobile-sidebar-open="isMobileSidebarOpen"
           @toggle="toggleMobileSidebar"

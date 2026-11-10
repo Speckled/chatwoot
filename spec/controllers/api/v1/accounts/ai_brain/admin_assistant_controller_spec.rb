@@ -10,15 +10,47 @@ RSpec.describe 'AI Brain admin assistant', type: :request do
 
   before { allow(AiBrain::Client).to receive(:new).and_return(client) }
 
-  it 'sends the message as the current user from the dashboard' do
+  it 'answers the message in the background, and the reply is read by its ID' do
     allow(client).to receive(:post).and_return([200, { 'textToSend' => 'Pronto.', 'cards' => [] }])
 
-    post url, headers: admin.create_new_auth_token, params: { text: 'Quero adicionar uma caixa de entrada' }, as: :json
+    post url, headers: admin.create_new_auth_token, params: { text: 'Quero adicionar horário de almoço' }, as: :json
+    expect(response).to have_http_status(:accepted)
+    request_id = response.parsed_body['requestId']
 
+    get "#{url}/#{request_id}", headers: admin.create_new_auth_token
+    expect(response).to have_http_status(:accepted)
+
+    perform_enqueued_jobs(only: AiBrain::AdminAssistantJob)
+    get "#{url}/#{request_id}", headers: admin.create_new_auth_token
     expect(response).to have_http_status(:ok)
     expect(response.parsed_body['textToSend']).to eq('Pronto.')
     expected = { ownerUserId: admin.id, phoneNumber: "dashboard-user-#{admin.id}", messageType: 'text', channel: 'dashboard' }
     expect(client).to have_received(:post).with('owner/messages', hash_including(expected))
+  end
+
+  it "passes on the backend's refusal, and an unreachable backend as 502" do
+    allow(client).to receive(:post).and_return([409, { 'error' => 'busy' }])
+    post url, headers: admin.create_new_auth_token, params: { text: 'Oi' }, as: :json
+    perform_enqueued_jobs(only: AiBrain::AdminAssistantJob)
+    get "#{url}/#{response.parsed_body['requestId']}", headers: admin.create_new_auth_token
+    expect(response).to have_http_status(:conflict)
+
+    allow(client).to receive(:post).and_raise(AiBrain::Client::UnavailableError, 'timeout')
+    post url, headers: admin.create_new_auth_token, params: { text: 'Oi' }, as: :json
+    perform_enqueued_jobs(only: AiBrain::AdminAssistantJob)
+    get "#{url}/#{response.parsed_body['requestId']}", headers: admin.create_new_auth_token
+    expect(response).to have_http_status(:bad_gateway)
+  end
+
+  it "never shows one user another user's reply" do
+    other = create(:user, account: account, role: :administrator)
+    allow(client).to receive(:post).and_return([200, { 'textToSend' => 'Pronto.' }])
+    post url, headers: admin.create_new_auth_token, params: { text: 'Oi' }, as: :json
+    perform_enqueued_jobs(only: AiBrain::AdminAssistantJob)
+
+    get "#{url}/#{response.parsed_body['requestId']}", headers: other.create_new_auth_token
+
+    expect(response).to have_http_status(:accepted)
   end
 
   it 'shares the WhatsApp number as the turn key for an owner on the private channel' do
@@ -26,6 +58,7 @@ RSpec.describe 'AI Brain admin assistant', type: :request do
     allow(client).to receive(:post).and_return([200, { 'textToSend' => 'Ok' }])
 
     post url, headers: admin.create_new_auth_token, params: { text: 'Oi' }, as: :json
+    perform_enqueued_jobs(only: AiBrain::AdminAssistantJob)
 
     expect(client).to have_received(:post).with('owner/messages', hash_including(phoneNumber: '+5511966665555'))
   end
