@@ -18,10 +18,12 @@ class Api::V1::Apps::StaffController < Api::V1::Apps::BaseController
 
   # Takes the staff flag off the number's contact, for someone who stops being staff or changes number: their next
   # conversations are a patient's again. The contact and its conversations stay. An unknown number changes nothing.
+  # The key is removed, not left empty: an empty list means staff flagged while no AI Brain WhatsApp inbox was active,
+  # whom AiBrainInbox flags when one is turned on.
   def destroy_contact
     contact = find_contact
     if contact&.additional_attributes&.key?(AiBrainStaffConversation::STAFF_INBOXES_KEY)
-      contact.update!(additional_attributes: contact.additional_attributes.merge(AiBrainStaffConversation::STAFF_INBOXES_KEY => []))
+      contact.update!(additional_attributes: contact.additional_attributes.except(AiBrainStaffConversation::STAFF_INBOXES_KEY))
     end
     head :no_content
   end

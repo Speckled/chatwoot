@@ -14,17 +14,18 @@ class AiBrainInbox < ApplicationRecord
   end
 
   # Staff are flagged in every AI Brain WhatsApp inbox of the account, so an inbox the AI Brain starts serving gets added
-  # to every contact already flagged as staff; their conversations there are staff-only from then on.
+  # to every contact flagged as staff, including those flagged while no inbox was active (an empty list); their
+  # conversations there are staff-only from then on. Former staff have no key (Apps::StaffController#destroy_contact).
+  # A contact that no longer passes validation is skipped rather than blocking the switch.
   def flag_staff_contacts
     return unless inbox.channel_type == 'Channel::Whatsapp'
 
     key = AiBrainStaffConversation::STAFF_INBOXES_KEY
-    account.contacts.where("jsonb_typeof(contacts.additional_attributes->'#{key}') = 'array'")
-           .where("jsonb_array_length(contacts.additional_attributes->'#{key}') > 0").find_each do |contact|
+    account.contacts.where("jsonb_typeof(contacts.additional_attributes->'#{key}') = 'array'").find_each do |contact|
       flagged = Array(contact.additional_attributes[key])
       next if flagged.include?(inbox_id)
 
-      contact.update!(additional_attributes: contact.additional_attributes.merge(key => flagged | [inbox_id]))
+      contact.update(additional_attributes: contact.additional_attributes.merge(key => flagged | [inbox_id]))
     end
   end
 end

@@ -44,6 +44,18 @@ RSpec.describe 'AI Brain staff API', type: :request do
     expect(Conversation.ai_brain_staff_contact?(contact.reload, inbox.id)).to be(true)
   end
 
+  it 'flags staff registered while no AI Brain WhatsApp inbox is active once one is turned on' do
+    AiBrainInbox.find_by!(inbox: inbox).update!(active: false)
+
+    post "#{base}/staff_contacts", headers: headers, params: { phoneNumber: '+5511977776666', name: 'Carla' }, as: :json
+    contact = account.contacts.find(response.parsed_body['contactId'])
+    flagged_before = contact.additional_attributes[AiBrainStaffConversation::STAFF_INBOXES_KEY]
+    AiBrainInbox.find_by!(inbox: inbox).update!(active: true)
+
+    expect(flagged_before).to eq([])
+    expect(Conversation.ai_brain_staff_contact?(contact.reload, inbox.id)).to be(true)
+  end
+
   describe 'removing the staff flag' do
     it "empties the flag of the number's contact and keeps the contact" do
       contact = create(:contact, account: account, phone_number: '+5511977776666',
@@ -53,7 +65,7 @@ RSpec.describe 'AI Brain staff API', type: :request do
 
       expect(response).to have_http_status(:no_content)
       contact.reload
-      expect(contact.additional_attributes[AiBrainStaffConversation::STAFF_INBOXES_KEY]).to eq([])
+      expect(contact.additional_attributes).not_to have_key(AiBrainStaffConversation::STAFF_INBOXES_KEY)
       expect(contact.additional_attributes['city']).to eq('Campinas')
       expect(Conversation.ai_brain_staff_contact?(contact, inbox.id)).to be(false)
     end
