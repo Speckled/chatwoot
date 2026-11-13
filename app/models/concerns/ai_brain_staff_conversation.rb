@@ -1,8 +1,9 @@
 # Conversations the AI Brain starts to message staff, such as a reminder to a professional, through the clinic's own
-# inboxes. Only account administrators see them, and the AI never answers them. The contact is flagged for the inbox the
-# message went through, so a conversation the staff member starts there later, by writing back, is staff-only as well.
-# Their conversations in other inboxes are not: a staff member who is also a patient stays one there. In the same inbox
-# nothing tells the two apart, so staff reminders sent through an inbox patients don't use keep both.
+# inboxes. Only account administrators see them, and the AI never answers them. A contact flagged as staff for an inbox
+# (STAFF_INBOXES_KEY) makes every conversation created there afterwards staff-only as well. The AI Brain flags a staff
+# member's contact in every AI Brain WhatsApp inbox as soon as they have a WhatsApp number, and takes the flag off when
+# they stop being staff (Apps::StaffController); a message the bot sends to staff flags its inbox too. An inbox the AI
+# Brain starts serving later is added to every flagged contact (AiBrainInbox). Existing conversations never change.
 module AiBrainStaffConversation
   extend ActiveSupport::Concern
 

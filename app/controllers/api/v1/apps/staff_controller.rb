@@ -16,6 +16,26 @@ class Api::V1::Apps::StaffController < Api::V1::Apps::BaseController
     render json: { error: e.record.errors.full_messages.to_sentence }, status: :unprocessable_entity
   end
 
+  # Takes the staff flag off the number's contact, for someone who stops being staff or changes number: their next
+  # conversations are a patient's again. The contact and its conversations stay. An unknown number changes nothing.
+  def destroy_contact
+    contact = find_contact
+    if contact&.additional_attributes&.key?(AiBrainStaffConversation::STAFF_INBOXES_KEY)
+      contact.update!(additional_attributes: contact.additional_attributes.merge(AiBrainStaffConversation::STAFF_INBOXES_KEY => []))
+    end
+    head :no_content
+  end
+
+  # The contact a number already has, before it is registered as staff: its name, and whether it is a patient, that is,
+  # whether it has conversations that are not staff-only in an inbox the AI Brain serves.
+  def show_contact
+    contact = find_contact
+    return render json: { error: 'Contact not found' }, status: :not_found unless contact
+
+    patient = contact.conversations.without_ai_brain_staff.exists?(inbox_id: ai_brain_whatsapp_inbox_ids)
+    render json: { contactId: contact.id, name: contact.name, patientConversations: patient }
+  end
+
   # Registers the user for the private channel with their WhatsApp number.
   def upsert_assistant
     user = @account.users.find_by(id: params[:user_id])
@@ -39,6 +59,16 @@ class Api::V1::Apps::StaffController < Api::V1::Apps::BaseController
   def fetch_account
     @account = Account.find_by(id: params[:account_id])
     render json: { error: 'Account not found' }, status: :not_found unless @account
+  end
+
+  def find_contact
+    phone_number = AiBrainOwner.canonical_phone_number(params[:phoneNumber])
+    @account.contacts.find_by(phone_number: phone_number) if valid_phone?(phone_number)
+  end
+
+  # Every WhatsApp inbox linked to the AI Brain, paused or not: a patient served there before is still a patient.
+  def ai_brain_whatsapp_inbox_ids
+    @account.ai_brain_inboxes.joins(:inbox).where(inboxes: { channel_type: 'Channel::Whatsapp' }).select(:inbox_id)
   end
 
   def flag_staff!(contact)

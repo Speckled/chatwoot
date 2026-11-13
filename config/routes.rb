@@ -56,6 +56,8 @@ Rails.application.routes.draw do
       post 'apps/:app_id/owners/:user_id/messages', to: 'apps/owners#create_message'
       post 'apps/:app_id/inboxes/:inbox_id/messages', to: 'apps/inbox_messages#create'
       post 'apps/:app_id/accounts/:account_id/staff_contacts', to: 'apps/staff#create_contact'
+      delete 'apps/:app_id/accounts/:account_id/staff_contacts', to: 'apps/staff#destroy_contact'
+      get 'apps/:app_id/accounts/:account_id/contacts/by_phone', to: 'apps/staff#show_contact'
       put 'apps/:app_id/accounts/:account_id/assistants/:user_id', to: 'apps/staff#upsert_assistant'
       delete 'apps/:app_id/accounts/:account_id/assistants/:user_id', to: 'apps/staff#destroy_assistant'
 
