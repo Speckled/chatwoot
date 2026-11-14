@@ -52,13 +52,31 @@ const toggleInbox = async (inbox, active) => {
   try {
     if (active) {
       await inboxesAPI.toggle(inbox.id, true);
-      inbox.aiBrainInbox = { active: true };
+      inbox.aiBrainInbox = { active: true, ownerAssistant: false };
     } else {
       await inboxesAPI.unassign(inbox.id);
       inbox.aiBrainInbox = null;
     }
   } catch (error) {
     useAlert(t('AI_BRAIN.ERROR'));
+  }
+};
+// Only a WhatsApp inbox the AI Brain is active on can send the admin assistant's alerts.
+const canSendOwnerAlerts = inbox =>
+  inbox.channelType === 'Channel::Whatsapp' &&
+  Boolean(inbox.aiBrainInbox?.active);
+const chooseOwnerAssistant = async inbox => {
+  try {
+    await inboxesAPI.chooseOwnerAssistant(inbox.id);
+    inboxes.value.forEach(other => {
+      if (other.aiBrainInbox) {
+        other.aiBrainInbox.ownerAssistant = other.id === inbox.id;
+      }
+    });
+  } catch (error) {
+    useAlert(t('AI_BRAIN.ERROR'));
+    // The browser already checked the radio; reloading shows the saved choice again.
+    load();
   }
 };
 </script>
@@ -163,6 +181,11 @@ const toggleInbox = async (inbox, active) => {
                     {{ t('AI_BRAIN.CHANNEL') }}
                   </th>
                   <th
+                    class="py-3 ltr:pr-4 rtl:pl-4 text-center text-sm font-medium text-n-slate-12"
+                  >
+                    {{ t('AI_BRAIN.OWNER_ASSISTANT_INBOX') }}
+                  </th>
+                  <th
                     class="py-3 ltr:pr-4 rtl:pl-4 text-end text-sm font-medium text-n-slate-12"
                   >
                     {{ t('AI_BRAIN.ACTIVE') }}
@@ -177,6 +200,17 @@ const toggleInbox = async (inbox, active) => {
                   <td class="py-3 ltr:pr-4 rtl:pl-4 text-sm text-n-slate-11">
                     {{ inbox.channelType }}
                   </td>
+                  <td class="py-3 ltr:pr-4 rtl:pl-4 text-center">
+                    <input
+                      v-if="canSendOwnerAlerts(inbox)"
+                      type="radio"
+                      name="owner-assistant-inbox"
+                      class="accent-n-brand cursor-pointer"
+                      :checked="Boolean(inbox.aiBrainInbox.ownerAssistant)"
+                      :aria-label="t('AI_BRAIN.OWNER_ASSISTANT_INBOX')"
+                      @change="chooseOwnerAssistant(inbox)"
+                    />
+                  </td>
                   <td class="py-3 ltr:pr-4 rtl:pl-4 text-end">
                     <Switch
                       :model-value="Boolean(inbox.aiBrainInbox?.active)"
@@ -186,6 +220,9 @@ const toggleInbox = async (inbox, active) => {
                 </tr>
               </tbody>
             </table>
+            <p class="pt-3 text-sm text-n-slate-11">
+              {{ t('AI_BRAIN.OWNER_ASSISTANT_INBOX_HINT') }}
+            </p>
           </div>
         </SectionLayout>
       </div>

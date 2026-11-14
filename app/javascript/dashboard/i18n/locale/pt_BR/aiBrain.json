@@ -10,6 +10,8 @@
     "INBOX_ROUTING": "Roteamento das caixas",
     "INBOX": "Caixa de entrada",
     "CHANNEL": "Canal",
+    "OWNER_ASSISTANT_INBOX": "Avisos do assistente administrativo",
+    "OWNER_ASSISTANT_INBOX_HINT": "O assistente administrativo envia os avisos aos responsáveis pelo número de WhatsApp escolhido. Sem escolha, usa o número em que cada responsável escreveu por último. As respostas sempre saem pelo número em que o responsável escreveu.",
     "AGENT": "Agente",
     "NONE": "Nenhum",
     "CREATE": "Criar",

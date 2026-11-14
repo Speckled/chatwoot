@@ -10,6 +10,11 @@ class InboxesAPI extends ApiClient {
     return axios.put(`${this.url}/${id}`, { active });
   }
 
+  // Makes the inbox the one the admin assistant sends its alerts to the owners through.
+  chooseOwnerAssistant(id) {
+    return axios.put(`${this.url}/${id}/owner_assistant`);
+  }
+
   unassign(id) {
     return this.delete(id);
   }
