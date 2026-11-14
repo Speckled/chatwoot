@@ -33,6 +33,7 @@ describe AiBrain::OwnerMessageJob do
     expect(sent).to eq([['5551995684103', 'Vou te mandar o link.'], ['5551995684103', 'https://api.test/connect/abc'],
                         ['5551995684103', 'Depois me avise.']])
     expect(job).to have_received(:sleep).with(1).twice
+    expect(owner.reload.last_inbox_id).to eq(inbox.id)
   end
 
   it 'sends only the reply when there are no follow-ups' do

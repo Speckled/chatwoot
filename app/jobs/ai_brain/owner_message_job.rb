@@ -18,6 +18,8 @@ class AiBrain::OwnerMessageJob < ApplicationJob
     @inbox = Inbox.find(inbox_id)
     @from = from
     owner = AiBrainOwner.find(owner_id)
+    # Alerts go through this inbox while the account has chosen none (Apps::OwnersController#owner_inbox).
+    owner.update!(last_inbox_id: inbox_id)
 
     body = {
       ownerUserId: owner.user_id,
