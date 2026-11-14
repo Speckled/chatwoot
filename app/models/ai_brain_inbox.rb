@@ -5,7 +5,20 @@ class AiBrainInbox < ApplicationRecord
   validates :inbox_id, uniqueness: true
   validate :inbox_belongs_to_account
 
+  # An inbox the AI Brain stops serving stops being the admin assistant's, so alerts fall back (OwnersController#owner_inbox).
+  before_save { self.owner_assistant = false unless active? }
   after_save :flag_staff_contacts, if: -> { active? && (previously_new_record? || saved_change_to_active?) }
+
+  # Makes this the inbox the admin assistant sends its alerts to the owners through, and no other inbox of the account.
+  # The account's rows are locked so two choices at once leave one chosen, not a unique index error.
+  def choose_for_owner_assistant!
+    transaction do
+      account.ai_brain_inboxes.lock.load
+      previous = account.ai_brain_inboxes.where(owner_assistant: true).where.not(id: id)
+      previous.update_all(owner_assistant: false, updated_at: Time.current) # rubocop:disable Rails/SkipsModelValidations -- only the flag changes
+      update!(owner_assistant: true)
+    end
+  end
 
   private
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_11_04_160000) do
+ActiveRecord::Schema[7.1].define(version: 2026_11_14_120000) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -310,8 +310,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_04_160000) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "owner_assistant", default: false, null: false
     t.index ["account_id", "agent_definition_id"], name: "index_ai_brain_inboxes_on_account_id_and_agent_definition_id"
     t.index ["account_id"], name: "index_ai_brain_inboxes_on_account_id"
+    t.index ["account_id"], name: "index_ai_brain_inboxes_on_owner_assistant", unique: true, where: "owner_assistant"
     t.index ["inbox_id"], name: "index_ai_brain_inboxes_on_inbox_id", unique: true
   end
 
@@ -321,6 +323,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_04_160000) do
     t.string "phone_number", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "last_inbox_id"
     t.index ["account_id"], name: "index_ai_brain_owners_on_account_id"
     t.index ["phone_number"], name: "index_ai_brain_owners_on_phone_number", unique: true
     t.index ["user_id"], name: "index_ai_brain_owners_on_user_id"
