@@ -12,20 +12,37 @@ import NextInput from 'dashboard/components-next/input/Input.vue';
 import staffAPI from 'dashboard/api/aiBrain/staff';
 
 // Everyone who works with the clinic: Chatwoot users and people without a login, such as a service provider the clinic
-// only messages on WhatsApp. Owners of the clinic change what each one may do.
+// only messages on WhatsApp. Owners of the clinic change what each one may do; any administrator edits the staff
+// description (profession, specialties, note), which tells the AI what a person is and grants nothing.
 const { t, te } = useI18n();
 const staff = ref([]);
 const loading = ref(true);
 const saving = ref(false);
 const dialogRef = ref(null);
+const descriptionDialogRef = ref(null);
 const emptyProvider = () => ({
   name: '',
   whatsAppNumber: '',
   email: '',
   bookable: false,
   responder: false,
+  profession: '',
+  specialties: '',
+  note: '',
 });
 const provider = ref(emptyProvider());
+const editing = ref(null);
+
+// Specialties are typed as one comma-separated line.
+const specialtiesOf = text =>
+  text
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean);
+const summaryOf = member =>
+  [member.profession, (member.specialties || []).join(', ')]
+    .filter(Boolean)
+    .join(' · ');
 
 // The backend names each refusal with a code, so it shows in the user's language; its English text is the fallback.
 const errorOf = error => {
@@ -63,11 +80,50 @@ const openProvider = () => {
 const addProvider = async () => {
   saving.value = true;
   try {
-    const created = (await staffAPI.create(provider.value)).data;
+    const created = (
+      await staffAPI.create({
+        ...provider.value,
+        specialties: specialtiesOf(provider.value.specialties),
+      })
+    ).data;
     staff.value = [...staff.value, created].sort((a, b) =>
       a.name.localeCompare(b.name)
     );
     dialogRef.value?.close();
+  } catch (error) {
+    useAlert(errorOf(error));
+  } finally {
+    saving.value = false;
+  }
+};
+const openDescription = member => {
+  editing.value = {
+    member,
+    profession: member.profession || '',
+    specialties: (member.specialties || []).join(', '),
+    note: member.note || '',
+  };
+  descriptionDialogRef.value?.open();
+};
+const saveDescription = async () => {
+  const { member, profession, specialties, note } = editing.value;
+  const changes = {
+    profession: profession.trim(),
+    specialties: specialtiesOf(specialties),
+    note: note.trim(),
+  };
+  const unchanged =
+    changes.profession === (member.profession || '') &&
+    changes.specialties.join('\n') === (member.specialties || []).join('\n') &&
+    changes.note === (member.note || '');
+  if (unchanged) {
+    descriptionDialogRef.value?.close();
+    return;
+  }
+  saving.value = true;
+  try {
+    replace((await staffAPI.setDescription(member.id, changes)).data);
+    descriptionDialogRef.value?.close();
   } catch (error) {
     useAlert(errorOf(error));
   } finally {
@@ -160,6 +216,9 @@ onMounted(load);
               <div class="font-medium">
                 {{ member.displayName || member.name }}
               </div>
+              <div v-if="summaryOf(member)" class="text-xs text-n-slate-12">
+                {{ summaryOf(member) }}
+              </div>
               <div class="text-xs text-n-slate-11">
                 {{
                   [member.email, member.whatsAppNumber]
@@ -200,7 +259,17 @@ onMounted(load);
                 @change="value => setCapability(member, 'bookable', value)"
               />
             </td>
-            <td class="py-3 ltr:pr-4 rtl:pl-4 text-end">
+            <td class="py-3 ltr:pr-4 rtl:pl-4 text-end whitespace-nowrap">
+              <Button
+                type="button"
+                size="xs"
+                color="slate"
+                variant="faded"
+                icon="i-lucide-pencil"
+                class="ltr:mr-2 rtl:ml-2"
+                :aria-label="t('AI_BRAIN.STAFF.EDIT_DESCRIPTION')"
+                @click="openDescription(member)"
+              />
               <Button
                 v-if="!member.hasLogin"
                 type="button"
@@ -244,6 +313,26 @@ onMounted(load);
           <WithLabel name="provider-email" :label="t('AI_BRAIN.STAFF.EMAIL')">
             <NextInput v-model="provider.email" type="email" class="w-full" />
           </WithLabel>
+          <WithLabel
+            name="provider-profession"
+            :label="t('AI_BRAIN.STAFF.PROFESSION')"
+          >
+            <NextInput
+              v-model="provider.profession"
+              class="w-full"
+              :placeholder="t('AI_BRAIN.STAFF.PROFESSION_PLACEHOLDER')"
+            />
+          </WithLabel>
+          <WithLabel
+            name="provider-specialties"
+            :label="t('AI_BRAIN.STAFF.SPECIALTIES')"
+          >
+            <NextInput
+              v-model="provider.specialties"
+              class="w-full"
+              :placeholder="t('AI_BRAIN.STAFF.SPECIALTIES_PLACEHOLDER')"
+            />
+          </WithLabel>
           <div class="flex items-center justify-between">
             <span class="text-sm text-n-slate-12">
               {{ t('AI_BRAIN.STAFF.BOOKABLE') }}
@@ -256,6 +345,41 @@ onMounted(load);
             </span>
             <Switch v-model="provider.responder" />
           </div>
+        </div>
+      </Dialog>
+      <Dialog
+        ref="descriptionDialogRef"
+        :title="t('AI_BRAIN.STAFF.EDIT_DESCRIPTION')"
+        :description="t('AI_BRAIN.STAFF.DESCRIPTION_HINT')"
+        :confirm-button-label="t('AI_BRAIN.SAVE')"
+        :cancel-button-label="t('AI_BRAIN.CANCEL')"
+        :is-loading="saving"
+        @confirm="saveDescription"
+      >
+        <div v-if="editing" class="flex flex-col gap-4">
+          <WithLabel
+            name="staff-profession"
+            :label="t('AI_BRAIN.STAFF.PROFESSION')"
+          >
+            <NextInput
+              v-model="editing.profession"
+              class="w-full"
+              :placeholder="t('AI_BRAIN.STAFF.PROFESSION_PLACEHOLDER')"
+            />
+          </WithLabel>
+          <WithLabel
+            name="staff-specialties"
+            :label="t('AI_BRAIN.STAFF.SPECIALTIES')"
+          >
+            <NextInput
+              v-model="editing.specialties"
+              class="w-full"
+              :placeholder="t('AI_BRAIN.STAFF.SPECIALTIES_PLACEHOLDER')"
+            />
+          </WithLabel>
+          <WithLabel name="staff-note" :label="t('AI_BRAIN.STAFF.NOTE')">
+            <NextInput v-model="editing.note" class="w-full" />
+          </WithLabel>
         </div>
       </Dialog>
     </template>

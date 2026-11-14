@@ -105,6 +105,7 @@ Rails.application.routes.draw do
             resources :admin_assistant, only: [:index, :create, :show]
             resources :staff, only: [:index, :create, :destroy] do
               put :capabilities, on: :member
+              put :description, on: :member
             end
             resources :payments, only: [:index] do
               post :refund, on: :member

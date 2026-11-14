@@ -6,8 +6,14 @@ class Api::V1::Accounts::AiBrain::StaffController < Api::V1::Accounts::AiBrain::
   end
 
   def create
-    body = params.permit(:name, :whatsAppNumber, :email, :bookable, :responder).to_h
+    body = params.permit(:name, :whatsAppNumber, :email, :bookable, :responder, :profession, :note, specialties: []).to_h
     render_upstream(client.post('users/providers', body.merge(accountId: Current.account.id)))
+  end
+
+  # What a person is: profession, specialties and a note. It grants nothing, so any administrator may change it.
+  def description
+    body = params.permit(:profession, :note, specialties: []).to_h
+    render_upstream(client.put("users/#{uuid_param!}/description", body))
   end
 
   def capabilities

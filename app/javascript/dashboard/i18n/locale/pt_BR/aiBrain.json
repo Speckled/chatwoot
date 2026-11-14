@@ -331,7 +331,7 @@
     },
     "STAFF": {
       "TITLE": "Equipe",
-      "DESCRIPTION": "Todos que trabalham com a clínica, com ou sem acesso ao Chatwoot, e o que cada um pode fazer. Só os responsáveis pela clínica alteram isso.",
+      "DESCRIPTION": "Todos que trabalham com a clínica, com ou sem acesso ao Chatwoot, e o que cada um pode fazer. Só os responsáveis pela clínica alteram o que cada um pode fazer; qualquer administrador edita as descrições.",
       "ADD_PROVIDER": "Adicionar alguém sem login",
       "PROVIDER_HINT": "Para pessoas com quem a clínica só fala pelo WhatsApp, como um prestador de serviço. Elas nunca recebem login no Chatwoot; o número fica marcado como equipe, e a IA nunca as trata como paciente.",
       "NAME": "Nome",
@@ -346,6 +346,13 @@
       "REMOVE": "Remover",
       "CONFIRM_REMOVE": "Tirar {name} da equipe? O cadastro fica guardado como inativo.",
       "HINT": "Responsável e assistente no WhatsApp são para administradores. Para quem tem login, o time no Chatwoot decide se os pacientes agendam com a pessoa.",
+      "PROFESSION": "Profissão",
+      "PROFESSION_PLACEHOLDER": "ex.: médica, fisioterapeuta, recepcionista",
+      "SPECIALTIES": "Especialidades, separadas por vírgula",
+      "SPECIALTIES_PLACEHOLDER": "ex.: ginecologia, obstetrícia",
+      "NOTE": "Observação (pacientes nunca veem)",
+      "EDIT_DESCRIPTION": "Editar descrição",
+      "DESCRIPTION_HINT": "Diz à IA quem é esta pessoa, para apresentá-la e escolher o profissional certo para o paciente. Não dá nenhuma permissão: o que a pessoa pode fazer vem das chaves.",
       "ROLES": {
         "administrator": "Administrador",
         "agent": "Agente",
@@ -367,6 +374,9 @@
         "NO_CHATWOOT_ACCOUNT": "{name} não tem conta no Chatwoot.",
         "RESPONDER_NEEDS_WHATSAPP": "{name} precisa ter um WhatsApp para responder dúvidas de pacientes.",
         "BOOKABLE_BY_TEAM": "{name} tem login no Chatwoot, então é o time no Chatwoot que decide se os pacientes agendam com essa pessoa.",
+        "PROFESSION_TOO_LONG": "A profissão tem no máximo {max} caracteres.",
+        "SPECIALTIES_TOO_LONG": "No máximo {count} especialidades, de até {max} caracteres cada.",
+        "NOTE_TOO_LONG": "A observação tem no máximo {max} caracteres.",
         "NOTHING_TO_CHANGE": "Nada muda para {name}."
       }
     },

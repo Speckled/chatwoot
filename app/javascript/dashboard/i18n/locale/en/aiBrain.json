@@ -331,7 +331,7 @@
     },
     "STAFF": {
       "TITLE": "Staff",
-      "DESCRIPTION": "Everyone who works with the clinic, with or without a Chatwoot login, and what each one may do. Only owners of the clinic change these.",
+      "DESCRIPTION": "Everyone who works with the clinic, with or without a Chatwoot login, and what each one may do. Only owners of the clinic change what each one may do; any administrator edits the descriptions.",
       "ADD_PROVIDER": "Add someone without a login",
       "PROVIDER_HINT": "For people the clinic only messages on WhatsApp, such as a service provider. They never get a Chatwoot login; their number is marked as staff, so the AI never treats them as a patient.",
       "NAME": "Name",
@@ -346,6 +346,13 @@
       "REMOVE": "Remove",
       "CONFIRM_REMOVE": "Take {name} out of the team? Their record is kept, marked inactive.",
       "HINT": "Owner and the WhatsApp assistant are for administrators. For people who log in, whether patients book them comes from their Chatwoot team.",
+      "PROFESSION": "Profession",
+      "PROFESSION_PLACEHOLDER": "e.g. médica, fisioterapeuta, recepcionista",
+      "SPECIALTIES": "Specialties, separated by commas",
+      "SPECIALTIES_PLACEHOLDER": "e.g. ginecologia, obstetrícia",
+      "NOTE": "Note (patients never see it)",
+      "EDIT_DESCRIPTION": "Edit description",
+      "DESCRIPTION_HINT": "Tells the AI what this person is, so it introduces them and picks the right professional for a patient. It grants nothing: what they may do is set by the switches.",
       "ROLES": {
         "administrator": "Administrator",
         "agent": "Agent",
@@ -367,6 +374,9 @@
         "NO_CHATWOOT_ACCOUNT": "{name} has no Chatwoot account.",
         "RESPONDER_NEEDS_WHATSAPP": "{name} needs a WhatsApp number to answer patients' questions.",
         "BOOKABLE_BY_TEAM": "{name} logs in to Chatwoot, so their team decides whether patients book them.",
+        "PROFESSION_TOO_LONG": "The profession takes up to {max} characters.",
+        "SPECIALTIES_TOO_LONG": "Up to {count} specialties, of up to {max} characters each.",
+        "NOTE_TOO_LONG": "The note takes up to {max} characters.",
         "NOTHING_TO_CHANGE": "Nothing changes for {name}."
       }
     },

@@ -10,6 +10,10 @@ class StaffAPI extends ApiClient {
   setCapabilities(id, changes) {
     return axios.put(`${this.url}/${id}/capabilities`, changes);
   }
+
+  setDescription(id, description) {
+    return axios.put(`${this.url}/${id}/description`, description);
+  }
 }
 
 export default new StaffAPI();
