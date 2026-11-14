@@ -56,6 +56,7 @@ en:
       invalid_sender_role: "Sender role must be 'client' or 'secretary'."
       contact_required: "Select a contact or enter a phone number."
       whatsapp_inbox_required: "Select a WhatsApp inbox."
+      owner_assistant_inbox: "Only a WhatsApp inbox the AI Brain is active on can send the admin assistant's alerts."
     owner:
       unavailable: "Sorry, I can't handle your message right now. Please try again in a few minutes."
   hello: 'Hello world'

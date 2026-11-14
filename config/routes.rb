@@ -93,6 +93,7 @@ Rails.application.routes.draw do
             end
             resources :inboxes, only: [:index, :create, :update, :destroy], param: :inbox_id do
               get :templates, on: :member
+              put :owner_assistant, on: :member
             end
             resources :reminders, only: [:index, :show, :create, :update, :destroy] do
               get :placeholders, on: :collection

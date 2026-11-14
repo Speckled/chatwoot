@@ -32,6 +32,7 @@ pt_BR:
       invalid_sender_role: "O remetente deve ser 'client' ou 'secretary'."
       contact_required: "Selecione um contato ou informe um telefone."
       whatsapp_inbox_required: "Selecione uma caixa de entrada do WhatsApp."
+      owner_assistant_inbox: "Só uma caixa do WhatsApp com o AI Brain ativo pode enviar os avisos do assistente administrativo."
     owner:
       unavailable: "Desculpe, não consegui atender sua mensagem agora. Tente de novo em alguns minutos."
   hello: 'Olá, mundo'
