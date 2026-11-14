@@ -91,6 +91,10 @@ RSpec.describe 'AI Brain owner user changes', type: :request do
     # Created before the provider is stubbed: creating a channel validates its provider config.
     let!(:first_inbox) { create(:inbox, account: account, channel: first_channel) }
     let!(:second_inbox) { create(:inbox, account: account, channel: second_channel) }
+    let!(:third_inbox) do
+      create(:inbox, account: account, channel: Channel::Whatsapp.create!(account: account, phone_number: '+5511999990003', provider: 'test',
+                                                                          provider_config: { 'source' => 'ai_brain_test' }))
+    end
 
     before do
       allow(Whatsapp::Providers::WhatsappTestService).to receive(:new).and_return(provider)
@@ -111,6 +115,31 @@ RSpec.describe 'AI Brain owner user changes', type: :request do
 
       post url, headers: headers, params: { text: 'Oi', inboxId: second_inbox.id }, as: :json
 
+      expect(response.parsed_body).to eq('inboxId' => first_inbox.id)
+    end
+
+    it 'sends an alert through the inbox chosen for the admin assistant, else the one the owner last wrote through' do
+      AiBrainInbox.create!(account: account, inbox: third_inbox, active: true)
+      AiBrainOwner.find_by(user: owner_user).update!(last_inbox_id: third_inbox.id)
+
+      post url, headers: headers, params: { text: 'Oi' }, as: :json
+      expect(response.parsed_body).to eq('inboxId' => third_inbox.id)
+
+      AiBrainInbox.find_by(inbox: second_inbox).choose_for_owner_assistant!
+      post url, headers: headers, params: { text: 'Oi' }, as: :json
+      expect(response.parsed_body).to eq('inboxId' => second_inbox.id)
+
+      # A connect link's confirmation names the inbox the link was asked through.
+      post url, headers: headers, params: { text: 'Oi', inboxId: first_inbox.id }, as: :json
+      expect(response.parsed_body).to eq('inboxId' => first_inbox.id)
+
+      # Turning the AI Brain off on the chosen inbox falls back to the last one written through, then to the first.
+      AiBrainInbox.find_by(inbox: second_inbox).update!(active: false)
+      post url, headers: headers, params: { text: 'Oi' }, as: :json
+      expect(response.parsed_body).to eq('inboxId' => third_inbox.id)
+
+      AiBrainInbox.find_by(inbox: third_inbox).destroy!
+      post url, headers: headers, params: { text: 'Oi' }, as: :json
       expect(response.parsed_body).to eq('inboxId' => first_inbox.id)
     end
 
