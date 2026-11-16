@@ -32,7 +32,8 @@ describe AiBrainListener do
     staff_contact = create(:contact, account: account, phone_number: '+5551999990002',
                                      additional_attributes: { 'ai_brain_staff_inbox_ids' => [inbox.id] })
     former_contact = create(:contact, account: account, phone_number: '+5551999990003')
-    staff = create(:conversation, account: account, inbox: inbox, contact: staff_contact)
+    staff_thread = create(:contact_inbox, contact: staff_contact, inbox: inbox, source_id: '5551999990002')
+    staff = create(:conversation, account: account, inbox: inbox, contact: staff_contact, contact_inbox: staff_thread)
     former = create(:conversation, account: account, inbox: inbox, contact: former_contact,
                                    additional_attributes: { 'ai_brain_audience' => 'staff' })
     staff_message = create(:message, account: account, inbox: inbox, conversation: staff, message_type: :incoming, content: 'oi')
@@ -54,7 +55,8 @@ describe AiBrainListener do
   it 'does not hand a staff member’s message to the staff agent while the AI Brain is off in the inbox' do
     staff_contact = create(:contact, account: account, phone_number: '+5551999990002',
                                      additional_attributes: { 'ai_brain_staff_inbox_ids' => [inbox.id] })
-    staff = create(:conversation, account: account, inbox: inbox, contact: staff_contact)
+    staff_thread = create(:contact_inbox, contact: staff_contact, inbox: inbox, source_id: '5551999990002')
+    staff = create(:conversation, account: account, inbox: inbox, contact: staff_contact, contact_inbox: staff_thread)
     inbox.ai_brain_inbox.update!(active: false)
     staff_message = create(:message, account: account, inbox: inbox, conversation: staff, message_type: :incoming, content: 'oi')
     allow(AiBrain::StaffConversationJob).to receive(:perform_later)

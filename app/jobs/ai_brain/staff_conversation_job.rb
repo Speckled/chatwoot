@@ -1,8 +1,9 @@
 # Runs one turn of the staff agent for a message a staff member wrote in their staff conversation, with or without a
 # Chatwoot login, and posts the reply in the same conversation as the AI Brain bot. The conversation keeps its staff
-# audience, so only administrators see it. The backend finds the person by the contact's number, which the contact's
-# staff flag ties to them (AiBrainStaffConversation); it never comes from the message. Only the message ID is queued, and
-# the message text never reaches the logs.
+# audience, so only administrators see it. The backend finds the person by the number WhatsApp delivered the message
+# from: the conversation's contact_inbox source_id, which only WhatsApp sets. The contact's phone_number and staff flag
+# are editable by any agent and may decide only whether the staff agent answers, never as whom. Only the message ID is
+# queued, and the message text never reaches the logs.
 class AiBrain::StaffConversationJob < ApplicationJob
   # The backend is still running an earlier turn of this person (409) or failed.
   class RetryableError < StandardError; end
@@ -19,8 +20,19 @@ class AiBrain::StaffConversationJob < ApplicationJob
   def self.handles?(message)
     conversation = message.conversation
     message.incoming? && !message.private? && conversation.ai_brain_staff? && message.inbox.ai_brain_active? &&
-      Conversation.ai_brain_staff_contact?(conversation.contact, message.inbox_id) &&
-      (message.content.present? || audio_of(message).present?)
+      staff_sender?(conversation) && (message.content.present? || audio_of(message).present?)
+  end
+
+  # The contact is flagged as staff in the inbox, and WhatsApp names the number they write from.
+  def self.staff_sender?(conversation)
+    Conversation.ai_brain_staff_contact?(conversation.contact, conversation.inbox_id) && sender_number(conversation).present?
+  end
+
+  # The sender's WhatsApp number in its canonical form; nil when the thread is keyed by WhatsApp's business scoped user id
+  # rather than a number, as the backend could not tell who wrote.
+  def self.sender_number(conversation)
+    source_id = conversation.contact_inbox&.source_id.to_s
+    AiBrainOwner.canonical_phone_number(source_id) if source_id.match?(/\A\d{1,15}\z/)
   end
 
   def self.audio_of(message)
@@ -49,7 +61,7 @@ class AiBrain::StaffConversationJob < ApplicationJob
   def body
     audio = self.class.audio_of(@message)
     {
-      phoneNumber: @message.conversation.contact.phone_number,
+      phoneNumber: self.class.sender_number(@message.conversation),
       whatsAppMessageId: "chatwoot-#{@message.id}",
       inboxId: @message.inbox_id,
       messageType: audio ? 'audio' : 'text',

@@ -13,13 +13,15 @@ describe AiBrain::StaffConversationJob do
   let(:contact) do
     create(:contact, account: account, phone_number: '+5551999990002', additional_attributes: { 'ai_brain_staff_inbox_ids' => [inbox.id] })
   end
-  let(:conversation) { create(:conversation, account: account, inbox: inbox, contact: contact) }
+  # WhatsApp reports the sender's number as the thread's source id, here without the Brazilian mobile 9.
+  let(:contact_inbox) { create(:contact_inbox, contact: contact, inbox: inbox, source_id: '555199990002') }
+  let(:conversation) { create(:conversation, account: account, inbox: inbox, contact: contact, contact_inbox: contact_inbox) }
   let(:message) { create(:message, account: account, inbox: inbox, conversation: conversation, message_type: :incoming, content: 'oi') }
   let(:client) { instance_double(AiBrain::Client) }
 
   before { allow(AiBrain::Client).to receive(:new).and_return(client) }
 
-  it 'names the person by the contact’s number and posts the reply and each follow-up in the conversation as the bot' do
+  it 'names the person by the sender’s canonical number and posts the reply and each follow-up in the conversation as the bot' do
     allow(client).to receive(:post).and_return(
       [200, { 'textToSend' => 'Vou te mandar o link.', 'followUps' => ['https://api.test/connect/abc'] }]
     )
@@ -34,6 +36,22 @@ describe AiBrain::StaffConversationJob do
     expect(replies.map(&:content)).to eq(['Vou te mandar o link.', 'https://api.test/connect/abc'])
     expect(replies.map(&:sender)).to all(eq(AiBrain::BotSender.for(account)))
     expect(conversation.reload.ai_brain_staff?).to be(true)
+  end
+
+  # Review of PR #43: an agent can edit a contact's number and flag, but not the number WhatsApp delivers from.
+  it 'names the person by the number WhatsApp delivered from, never by the contact’s editable number' do
+    contact.update!(phone_number: '+5511988887777')
+    allow(client).to receive(:post).and_return([200, { 'textToSend' => 'Olá!' }])
+
+    described_class.perform_now(message.id)
+
+    expect(client).to have_received(:post).with('owner/messages', hash_including(phoneNumber: '+5551999990002'))
+  end
+
+  it 'does not handle a thread keyed by a business scoped user id, which names no number' do
+    contact_inbox.update!(source_id: 'BR.1234567890abcdef')
+
+    expect(described_class.handles?(message)).to be(false)
   end
 
   it 'sends a voice note as audio' do
