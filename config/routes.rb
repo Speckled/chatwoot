@@ -263,6 +263,10 @@ Rails.application.routes.draw do
                 end
               end
               resource :contact_info_request, only: [:show, :create]
+              resource :ai_brain_session, only: [:show] do
+                post :answer
+                post :close
+              end
               resources :assignments, only: [:create]
               resources :labels, only: [:create, :index]
               resource :participants, only: [:show, :create, :update, :destroy]
