@@ -177,6 +177,29 @@
     "HUMAN_TIMEOUT_MINUTES": "Human handoff timeout (minutes)",
     "REQUIRED_ONBOARDING": "Required onboarding fields",
     "OPTIONAL_ONBOARDING": "Optional onboarding fields",
+    "SESSION_CLOSE": {
+      "TITLE": "Close the conversation",
+      "DESCRIPTION": "Why is this conversation closing? The patient is not sent any message.",
+      "CONFIRM": "Close",
+      "DONE": "Conversation closed",
+      "NOTE_PLACEHOLDER": "Describe the reason",
+      "REASONS": {
+        "ISSUE_SOLVED": "The patient's issue is solved",
+        "PATIENT_STOPPED_REPLYING": "The patient stopped replying",
+        "HANDLED_ELSEWHERE": "Handled outside this chat (by phone, in person)",
+        "OTHER": "Other"
+      }
+    },
+    "INACTIVITY_PROMPT": {
+      "NOTICE": "No messages for a while. Is the client's issue solved?",
+      "SOLVED": "Then close the conversation.",
+      "UNSOLVED": "Message the patient, or close without contacting them.",
+      "CLOSE_REQUIRED": "Still no messages. Closing is now mandatory.",
+      "YES": "Yes",
+      "NO": "No",
+      "CLOSE": "Close",
+      "CLOSE_WITHOUT_CONTACT": "Close without contacting"
+    },
     "END_SESSION": "End human session and resume bot",
     "REVIEW_PROPOSAL": "Review proposed reply",
     "VALIDATE_SEND": "Validate, send and resume bot",

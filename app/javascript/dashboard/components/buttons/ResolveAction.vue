@@ -19,6 +19,8 @@ import {
 import ButtonGroup from 'dashboard/components-next/buttonGroup/ButtonGroup.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
 import ConversationResolveAttributesModal from 'dashboard/components-next/ConversationWorkflow/ConversationResolveAttributesModal.vue';
+import SessionCloseDialog from 'dashboard/components-next/aiBrain/SessionCloseDialog.vue';
+import conversationSession from 'dashboard/api/aiBrain/conversationSession';
 
 const store = useStore();
 const getters = useStoreGetters();
@@ -28,6 +30,7 @@ const { checkMissingAttributes } = useConversationRequiredAttributes();
 const arrowDownButtonRef = ref(null);
 const isLoading = ref(false);
 const resolveAttributesModalRef = ref(null);
+const sessionCloseDialogRef = ref(null);
 
 const [showActionsDropdown, toggleDropdown] = useToggle();
 const closeDropdown = () => toggleDropdown(false);
@@ -117,7 +120,22 @@ const onCmdOpenConversation = () => {
   toggleStatus(wootConstants.STATUS_TYPE.OPEN);
 };
 
-const onCmdResolveConversation = () => {
+// A conversation with an AI Brain session is closed with a reason (LRB-85), which the dialog sends before resolving it.
+const hasAiBrainSession = async conversationId => {
+  try {
+    return (await conversationSession.show(conversationId)).data.aiSession;
+  } catch (error) {
+    return false;
+  }
+};
+
+const onCmdResolveConversation = async () => {
+  const conversationId = currentChat.value.id;
+  if (await hasAiBrainSession(conversationId)) {
+    sessionCloseDialogRef.value?.open(conversationId);
+    return;
+  }
+
   const currentCustomAttributes = currentChat.value.custom_attributes || {};
   const { hasMissing, missing } = checkMissingAttributes(
     currentCustomAttributes
@@ -259,5 +277,6 @@ useEmitter(CMD_RESOLVE_CONVERSATION, onCmdResolveConversation);
       ref="resolveAttributesModalRef"
       @submit="handleResolveWithAttributes"
     />
+    <SessionCloseDialog ref="sessionCloseDialogRef" />
   </div>
 </template>

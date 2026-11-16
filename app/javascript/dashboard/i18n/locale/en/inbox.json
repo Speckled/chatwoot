@@ -25,7 +25,8 @@
       "PARTICIPATING_CONVERSATION_NEW_MESSAGE": "New message in a conversation you are participating in",
       "SLA_MISSED_FIRST_RESPONSE": "SLA target first response missed for conversation",
       "SLA_MISSED_NEXT_RESPONSE": "SLA target next response missed for conversation",
-      "SLA_MISSED_RESOLUTION": "SLA target resolution missed for conversation"
+      "SLA_MISSED_RESOLUTION": "SLA target resolution missed for conversation",
+      "AI_BRAIN_SESSION_INACTIVE": "A conversation has had no messages for a while"
     },
     "TYPES_NEXT": {
       "CONVERSATION_MENTION": "Mentioned",
@@ -34,6 +35,7 @@
       "SLA_MISSED_FIRST_RESPONSE": "SLA breach",
       "SLA_MISSED_NEXT_RESPONSE": "SLA breach",
       "SLA_MISSED_RESOLUTION": "SLA breach",
+      "AI_BRAIN_SESSION_INACTIVE": "No messages",
       "PARTICIPATING_CONVERSATION_NEW_MESSAGE": "New message",
       "ASSIGNED_CONVERSATION_NEW_MESSAGE": "New message",
       "SNOOZED_UNTIL": "Snoozed for {time}",

@@ -177,6 +177,29 @@
     "HUMAN_TIMEOUT_MINUTES": "Tempo limite de atendimento humano (minutos)",
     "REQUIRED_ONBOARDING": "Campos obrigatórios de cadastro",
     "OPTIONAL_ONBOARDING": "Campos opcionais de cadastro",
+    "SESSION_CLOSE": {
+      "TITLE": "Encerrar a conversa",
+      "DESCRIPTION": "Por que esta conversa está sendo encerrada? O paciente não recebe nenhuma mensagem.",
+      "CONFIRM": "Encerrar",
+      "DONE": "Conversa encerrada",
+      "NOTE_PLACEHOLDER": "Descreva o motivo",
+      "REASONS": {
+        "ISSUE_SOLVED": "A questão do paciente foi resolvida",
+        "PATIENT_STOPPED_REPLYING": "O paciente parou de responder",
+        "HANDLED_ELSEWHERE": "Resolvido fora deste chat (por telefone, pessoalmente)",
+        "OTHER": "Outro"
+      }
+    },
+    "INACTIVITY_PROMPT": {
+      "NOTICE": "Sem mensagens há algum tempo. A questão do cliente foi resolvida?",
+      "SOLVED": "Então encerre a conversa.",
+      "UNSOLVED": "Envie uma mensagem ao paciente, ou encerre sem contatá-lo.",
+      "CLOSE_REQUIRED": "Ainda sem mensagens. Agora é obrigatório encerrar.",
+      "YES": "Sim",
+      "NO": "Não",
+      "CLOSE": "Encerrar",
+      "CLOSE_WITHOUT_CONTACT": "Encerrar sem contatar"
+    },
     "END_SESSION": "Encerrar atendimento humano e retomar o bot",
     "REVIEW_PROPOSAL": "Revisar resposta proposta",
     "VALIDATE_SEND": "Validar, enviar e retomar o bot",

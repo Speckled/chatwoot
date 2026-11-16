@@ -17,6 +17,7 @@ import { useAlert } from 'dashboard/composables';
 import { useI18n } from 'vue-i18n';
 import { useAdmin } from 'dashboard/composables/useAdmin';
 import aiBrainConversations from 'dashboard/api/aiBrain/conversations';
+import SessionInactivityPrompt from 'dashboard/components-next/aiBrain/SessionInactivityPrompt.vue';
 import { copyTextToClipboard } from 'shared/helpers/clipboard';
 
 const props = defineProps({
@@ -258,6 +259,7 @@ const copyConversationId = async () => {
         class="hidden md:flex"
       />
       <ConversationCallButton :inbox="inbox" :chat="currentChat" />
+      <SessionInactivityPrompt :chat="chat" />
       <div v-if="aiBrain?.state === 'human'" class="flex gap-2">
         <button
           type="button"
