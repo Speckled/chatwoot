@@ -192,6 +192,26 @@
         "OTHER": "Outro"
       }
     },
+    "LAST_CLOSE": {
+      "TEXT": "Sessão encerrada por {closedBy}: {reason}.",
+      "A_PERSON": "uma pessoa",
+      "BY": {
+        "Clara": "Clara",
+        "Inactivity": "inatividade",
+        "Person": "uma pessoa",
+        "System": "sistema"
+      },
+      "REASON": {
+        "NothingMoreNeeded": "o paciente não precisava de mais nada",
+        "PatientInactive": "o paciente parou de responder à Clara",
+        "NoAnswerFromPerson": "sem resposta da pessoa",
+        "IssueSolved": "a questão do paciente foi resolvida",
+        "PatientStoppedReplying": "o paciente parou de responder",
+        "HandledElsewhere": "resolvido fora deste chat",
+        "Other": "outro",
+        "NotGiven": "motivo não informado"
+      }
+    },
     "INACTIVITY_PROMPT": {
       "NOTICE": "Sem mensagens há algum tempo. A questão do cliente foi resolvida?",
       "SOLVED": "Então encerre a conversa.",

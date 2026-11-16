@@ -192,6 +192,26 @@
         "OTHER": "Other"
       }
     },
+    "LAST_CLOSE": {
+      "TEXT": "Session closed by {closedBy}: {reason}.",
+      "A_PERSON": "a person",
+      "BY": {
+        "Clara": "Clara",
+        "Inactivity": "inactivity",
+        "Person": "a person",
+        "System": "the system"
+      },
+      "REASON": {
+        "NothingMoreNeeded": "the patient needed nothing more",
+        "PatientInactive": "the patient stopped replying to Clara",
+        "NoAnswerFromPerson": "no answer from the person",
+        "IssueSolved": "the patient's issue is solved",
+        "PatientStoppedReplying": "the patient stopped replying",
+        "HandledElsewhere": "handled outside this chat",
+        "Other": "other",
+        "NotGiven": "no reason given"
+      }
+    },
     "INACTIVITY_PROMPT": {
       "NOTICE": "No messages for a while. Is the client's issue solved?",
       "SOLVED": "Then close the conversation.",

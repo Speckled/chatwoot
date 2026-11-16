@@ -96,6 +96,18 @@ const endHumanSession = async () => {
     aiBusy.value = false;
   }
 };
+// How the last AI Brain session ended, shown to administrators on a resolved conversation (LRB-85).
+const lastCloseText = computed(() => {
+  const close = aiBrain.value?.lastClose;
+  if (!close) return '';
+  const closedBy =
+    close.closedBy === 'Person'
+      ? close.closedByName || t('AI_BRAIN.LAST_CLOSE.A_PERSON')
+      : t(`AI_BRAIN.LAST_CLOSE.BY.${close.closedBy}`);
+  const reason = t(`AI_BRAIN.LAST_CLOSE.REASON.${close.closeReason}`);
+  const text = t('AI_BRAIN.LAST_CLOSE.TEXT', { closedBy, reason });
+  return close.closeNote ? `${text} ${close.closeNote}` : text;
+});
 const validateReply = async () => {
   aiBusy.value = true;
   try {
@@ -260,6 +272,9 @@ const copyConversationId = async () => {
       />
       <ConversationCallButton :inbox="inbox" :chat="currentChat" />
       <SessionInactivityPrompt :chat="chat" />
+      <span v-if="lastCloseText" class="max-w-md text-xs text-n-slate-11">
+        {{ lastCloseText }}
+      </span>
       <div v-if="aiBrain?.state === 'human'" class="flex gap-2">
         <button
           type="button"

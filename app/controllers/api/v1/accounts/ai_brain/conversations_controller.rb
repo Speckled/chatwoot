@@ -16,7 +16,8 @@ class Api::V1::Accounts::AiBrain::ConversationsController < Api::V1::Accounts::A
       activeWorkflow: state&.active_workflow,
       clientId: state&.client_id,
       review: review,
-      aiEnabled: conversation.inbox.ai_brain_active?
+      aiEnabled: conversation.inbox.ai_brain_active?,
+      lastClose: (last_close(conversation) if conversation.resolved?)
     }
   end
 
@@ -64,6 +65,17 @@ class Api::V1::Accounts::AiBrain::ConversationsController < Api::V1::Accounts::A
   end
 
   private
+
+  # How the conversation's last AI Brain session ended (LRB-85), for administrators only: the note can hold patient data.
+  def last_close(conversation)
+    status, close = client.get("conversations/#{conversation.id}/session/last-closed")
+    return unless status == 200
+
+    closer = Current.account.users.find_by(id: close['closedByChatwootUserId'])
+    close.slice('closedBy', 'closeReason', 'closeNote', 'closedAt').merge('closedByName' => closer&.name)
+  rescue AiBrain::Client::UnavailableError
+    nil
+  end
 
   def open_staff_questions(conversation)
     status, questions = client.get("conversations/#{conversation.id}/staff-questions")
