@@ -2,8 +2,9 @@ require 'rails_helper'
 
 describe AiBrain::StaffConversationJob do
   let(:account) { create(:account) }
+  # Only Cloud API inboxes keep each sender in their own thread, so only they are handled.
   let(:channel) do
-    Channel::Whatsapp.create!(account: account, phone_number: '+5511999990000', provider: 'test', provider_config: { 'source' => 'ai_brain_test' })
+    create(:channel_whatsapp, account: account, provider: 'whatsapp_cloud', sync_templates: false, validate_provider_config: false)
   end
   let(:inbox) do
     inbox = create(:inbox, account: account, channel: channel)
@@ -54,6 +55,13 @@ describe AiBrain::StaffConversationJob do
     expect(described_class.handles?(message)).to be(false)
   end
 
+  # Review of PR #43: 360dialog reuses any conversation of the contact, whose source id may be another number's.
+  it 'does not handle a message in an inbox that is not Cloud API' do
+    channel.update_column(:provider, 'default') # rubocop:disable Rails/SkipsModelValidations
+
+    expect(described_class.handles?(message.reload)).to be(false)
+  end
+
   it 'sends a voice note as audio' do
     message.attachments.create!(account: account, file_type: :audio,
                                 file: { io: StringIO.new('ogg'), filename: 'voz.ogg', content_type: 'audio/ogg' })
@@ -80,7 +88,7 @@ describe AiBrain::StaffConversationJob do
     allow(client).to receive(:post).and_return([409, {}])
     message_id = message.id
 
-    perform_enqueued_jobs { described_class.perform_later(message_id) }
+    perform_enqueued_jobs(only: described_class) { described_class.perform_later(message_id) }
 
     expect(client).to have_received(:post).exactly(6).times
     expect(conversation.messages.outgoing.pluck(:content)).to eq([I18n.t('ai_brain.owner.unavailable')])

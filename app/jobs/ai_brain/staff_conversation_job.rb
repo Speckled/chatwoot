@@ -23,9 +23,12 @@ class AiBrain::StaffConversationJob < ApplicationJob
       staff_sender?(conversation) && (message.content.present? || audio_of(message).present?)
   end
 
-  # The contact is flagged as staff in the inbox, and WhatsApp names the number they write from.
+  # The contact is flagged as staff in the inbox, and WhatsApp names the number they write from. Only a Cloud API inbox
+  # keeps each sender in their own thread (Whatsapp::IncomingMessageBaseService#set_conversation); other providers reuse
+  # any conversation of the contact, whose source id may be another number than the sender's.
   def self.staff_sender?(conversation)
-    Conversation.ai_brain_staff_contact?(conversation.contact, conversation.inbox_id) && sender_number(conversation).present?
+    conversation.inbox.channel.try(:provider) == 'whatsapp_cloud' &&
+      Conversation.ai_brain_staff_contact?(conversation.contact, conversation.inbox_id) && sender_number(conversation).present?
   end
 
   # The sender's WhatsApp number in its canonical form; nil when the thread is keyed by WhatsApp's business scoped user id
