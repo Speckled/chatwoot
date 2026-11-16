@@ -11,3 +11,7 @@ filter_regex = /\A(?!.*\bwebsite_token\b).*token/i
 
 # Apply the regex for filtering
 Rails.application.config.filter_parameters += [filter_regex]
+
+# AI Brain (LRB-85): the free text a person gives when they close a conversation can hold patient data. Only a key named
+# exactly "note" is filtered, so other keys that contain the word keep their values in the log.
+Rails.application.config.filter_parameters += [/\Anote\z/]
