@@ -24,6 +24,20 @@ RSpec.describe 'AI Brain business rules API', type: :request do
     end
   end
 
+  it 'passes the four inactivity windows on' do
+    allow(client).to receive(:put).and_return([200, {}])
+    windows = { inactivityNudgeMinutes: 10, inactivityAutoCloseMinutes: 20, otherSessionInactivityMinutes: 30, personCloseRequiredMinutes: 45 }
+
+    put "/api/v1/accounts/#{account.id}/ai_brain/business_rules",
+        headers: admin.create_new_auth_token,
+        params: { businessRules: windows.merge(businessName: 'Clínica') },
+        as: :json
+
+    expect(client).to have_received(:put) do |_path, body|
+      expect(body).to include(windows.stringify_keys)
+    end
+  end
+
   it 'passes the payment confirmation template on' do
     allow(client).to receive(:put).and_return([200, {}])
     template = { name: 'pagamento_confirmado', language: 'pt_BR', category: 'UTILITY', bodyParameters: ['{{client_first_name}}', '{{amount}}'] }

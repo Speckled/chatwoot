@@ -189,7 +189,10 @@ watch(
 
     <SectionLayout :title="t('AI_BRAIN.SESSION_SETTINGS')" with-border>
       <div class="grid gap-4">
-        <div class="grid gap-4 md:grid-cols-3">
+        <p class="text-sm text-n-slate-11">
+          {{ t('AI_BRAIN.INACTIVITY_HINT') }}
+        </p>
+        <div class="grid gap-4 md:grid-cols-2">
           <WithLabel
             name="nudge-minutes"
             :label="t('AI_BRAIN.INACTIVITY_NUDGE')"
@@ -218,6 +221,17 @@ watch(
           >
             <NextInput
               v-model.number="rules.otherSessionInactivityMinutes"
+              type="number"
+              min="1"
+              class="w-full"
+            />
+          </WithLabel>
+          <WithLabel
+            name="close-required-minutes"
+            :label="t('AI_BRAIN.PERSON_CLOSE_REQUIRED_MINUTES')"
+          >
+            <NextInput
+              v-model.number="rules.personCloseRequiredMinutes"
               type="number"
               min="1"
               class="w-full"

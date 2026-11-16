@@ -172,9 +172,11 @@
       "PROFESSIONAL_NOTES_HINT": "This professional's notes replace the clinic's."
     },
     "SESSION_SETTINGS": "Session & onboarding settings",
-    "INACTIVITY_NUDGE": "Inactivity nudge message",
-    "INACTIVITY_CLOSE": "Inactivity close message",
-    "HUMAN_TIMEOUT_MINUTES": "Human handoff timeout (minutes)",
+    "INACTIVITY_NUDGE": "Minutes before \"still there?\" (Clara's chat)",
+    "INACTIVITY_CLOSE": "Minutes after \"still there?\" before closing",
+    "HUMAN_TIMEOUT_MINUTES": "Minutes before asking the person (a person's chat)",
+    "PERSON_CLOSE_REQUIRED_MINUTES": "Minutes before closing is mandatory, and again before it closes",
+    "INACTIVITY_HINT": "Counted from the last message. Clara closes without messaging the patient. In a person's chat, the person is asked whether the issue is solved, then must close; with no answer, the chat closes by itself and the owners are told.",
     "REQUIRED_ONBOARDING": "Required onboarding fields",
     "OPTIONAL_ONBOARDING": "Optional onboarding fields",
     "SESSION_CLOSE": {

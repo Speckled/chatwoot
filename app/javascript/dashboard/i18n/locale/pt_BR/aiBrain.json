@@ -172,9 +172,11 @@
       "PROFESSIONAL_NOTES_HINT": "As observações deste profissional substituem as da clínica."
     },
     "SESSION_SETTINGS": "Configurações de sessão e cadastro",
-    "INACTIVITY_NUDGE": "Mensagem de aviso de inatividade",
-    "INACTIVITY_CLOSE": "Mensagem de encerramento por inatividade",
-    "HUMAN_TIMEOUT_MINUTES": "Tempo limite de atendimento humano (minutos)",
+    "INACTIVITY_NUDGE": "Minutos até \"ainda está aí?\" (conversa com a Clara)",
+    "INACTIVITY_CLOSE": "Minutos após \"ainda está aí?\" até encerrar",
+    "HUMAN_TIMEOUT_MINUTES": "Minutos até perguntar à pessoa (conversa com uma pessoa)",
+    "PERSON_CLOSE_REQUIRED_MINUTES": "Minutos até encerrar ser obrigatório, e de novo até encerrar sozinha",
+    "INACTIVITY_HINT": "Contados a partir da última mensagem. A Clara encerra sem enviar mensagem ao paciente. Na conversa com uma pessoa, ela é perguntada se a questão foi resolvida e depois precisa encerrar; sem resposta, a conversa encerra sozinha e os responsáveis são avisados.",
     "REQUIRED_ONBOARDING": "Campos obrigatórios de cadastro",
     "OPTIONAL_ONBOARDING": "Campos opcionais de cadastro",
     "SESSION_CLOSE": {

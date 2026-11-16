@@ -101,7 +101,7 @@ const toggleInbox = async (inbox, active) => {
               </p>
               <p class="text-sm text-n-slate-11">
                 {{
-                  `${t('AI_BRAIN.INACTIVITY_NUDGE')}: ${rules?.inactivityNudgeMinutes ?? 5}m / ${t('AI_BRAIN.INACTIVITY_CLOSE')}: ${rules?.inactivityAutoCloseMinutes ?? 10}m`
+                  `${t('AI_BRAIN.INACTIVITY_NUDGE')}: ${rules?.inactivityNudgeMinutes ?? 10}m / ${t('AI_BRAIN.INACTIVITY_CLOSE')}: ${rules?.inactivityAutoCloseMinutes ?? 20}m`
                 }}
               </p>
             </div>
