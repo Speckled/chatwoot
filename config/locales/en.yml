@@ -56,6 +56,9 @@ en:
       invalid_sender_role: "Sender role must be 'client' or 'secretary'."
       contact_required: "Select a contact or enter a phone number."
       whatsapp_inbox_required: "Select a WhatsApp inbox."
+      no_inactivity_question: "This conversation is not waiting for an answer."
+      invalid_close_reason: "Choose a reason. For Other, describe it in at most 500 characters."
+      no_ai_session: "This conversation has no AI Brain session."
     owner:
       unavailable: "Sorry, I can't handle your message right now. Please try again in a few minutes."
   hello: 'Hello world'
@@ -352,6 +355,9 @@ en:
       sla_missed_first_response: 'SLA target first response missed for conversation (#%{display_id})'
       sla_missed_next_response: 'SLA target next response missed for conversation (#%{display_id})'
       sla_missed_resolution: 'SLA target resolution missed for conversation (#%{display_id})'
+      ai_brain_session_inactive:
+        notice: "The chat #%{display_id} has no messages for the past %{minutes} minutes. Is the client's issue solved?"
+        close_required: 'The chat #%{display_id} has no messages for the past %{minutes} minutes. Please close it now.'
     attachment: 'Attachment'
     no_content: 'No content'
   conversations:

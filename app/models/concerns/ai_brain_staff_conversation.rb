@@ -37,6 +37,12 @@ module AiBrainStaffConversation
     ai_brain_staff? && !account.administrators.exists?(user.id)
   end
 
+  # A patient's conversation in an AI Brain inbox, which has AI Brain sessions. Conversations the AI Brain started to message
+  # staff never have one.
+  def ai_brain_session?
+    inbox.ai_brain_inbox.present? && !ai_brain_staff?
+  end
+
   # Whether the AI may answer: never in a staff conversation, and otherwise while no person has taken it over.
   def ai_brain_bot_owned?
     !ai_brain_staff? && ai_brain_conversation&.state.in?([nil, 'bot'])

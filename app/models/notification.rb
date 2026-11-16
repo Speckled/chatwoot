@@ -43,10 +43,13 @@ class Notification < ApplicationRecord
     participating_conversation_new_message: 5,
     sla_missed_first_response: 6,
     sla_missed_next_response: 7,
-    sla_missed_resolution: 8
+    sla_missed_resolution: 8,
+    # AI Brain (LRB-85): a person's chat went quiet. Numbered apart from upstream's types so a later one cannot take the value.
+    ai_brain_session_inactive: 20
   }.freeze
 
   enum notification_type: NOTIFICATION_TYPES
+  prepend AiBrainNotification
 
   before_create :set_last_activity_at
   after_create_commit :process_notification_delivery, :dispatch_create_event

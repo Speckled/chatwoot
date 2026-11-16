@@ -48,6 +48,7 @@ Rails.application.routes.draw do
   namespace :api, defaults: { format: 'json' } do
     namespace :v1 do
       post 'apps/:app_id/sessions/:session_id/messages/outbound', to: 'apps/sessions#outbound'
+      post 'apps/:app_id/conversations/:conversation_id/inactivity_prompt', to: 'apps/conversations#inactivity_prompt'
       get 'apps/:app_id/attachments/:id/file', to: 'apps/attachments#file'
       put 'apps/:app_id/attachments/:id/transcription', to: 'apps/attachments#transcription'
       post 'apps/:app_id/owners/:user_id/users', to: 'apps/owners#create_user'

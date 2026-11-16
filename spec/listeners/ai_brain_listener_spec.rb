@@ -28,6 +28,20 @@ describe AiBrainListener do
     expect(AiBrain::ResponseJob).not_to have_received(:perform_later).with(staff_reply.id)
   end
 
+  it 'clears the inactivity prompt when either side writes, and not for a private note' do
+    conversation = create(:conversation, account: account, inbox: inbox, status: :open)
+    state = AiBrainConversation.create!(account: account, conversation: conversation, state: 'human')
+    state.show_inactivity_prompt!('close_required')
+    note = create(:message, account: account, inbox: inbox, conversation: conversation, message_type: :outgoing, private: true, content: 'nota')
+    reply = create(:message, account: account, inbox: inbox, conversation: conversation, message_type: :outgoing, content: 'Olá!')
+
+    listener.message_created(Events::Base.new(:'message.created', Time.zone.now, message: note))
+    expect(state.reload.inactivity_prompt).to eq('close_required')
+
+    listener.message_created(Events::Base.new(:'message.created', Time.zone.now, message: reply))
+    expect(state.reload).to have_attributes(inactivity_prompt: nil, inactivity_prompted_at: nil)
+  end
+
   it 'leaves the AI session alone when an administrator opens or resolves a staff conversation' do
     staff = create(:conversation, account: account, inbox: inbox, additional_attributes: { 'ai_brain_audience' => 'staff' })
     staff.open!
