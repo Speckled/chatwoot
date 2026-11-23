@@ -73,6 +73,40 @@ RSpec.describe 'AI Brain session of a conversation', type: :request do
     expect(conversation.reload).to be_resolved
   end
 
+  context 'with the satisfaction survey turned on' do
+    let(:survey) { CsatSurveyService.new(conversation: conversation.reload) }
+
+    before do
+      inbox.update!(csat_survey_enabled: true)
+      create(:message, account: account, inbox: inbox, conversation: conversation, message_type: :incoming)
+    end
+
+    it 'sends no survey when the patient stopped replying' do
+      perform_enqueued_jobs do
+        post "#{base}/close", headers: agent.create_new_auth_token, params: { reason: 'PatientStoppedReplying' }, as: :json
+      end
+
+      expect(response).to have_http_status(:no_content)
+      expect(conversation.reload).to be_resolved
+      expect(conversation.ai_brain_silent_close?).to be(true)
+      expect(survey.due?).to be(false)
+      expect(conversation.messages.where(content_type: :input_csat)).to be_empty
+    end
+
+    %w[IssueSolved HandledElsewhere Other].each do |reason|
+      it "keeps the survey when the reason is #{reason}" do
+        perform_enqueued_jobs do
+          post "#{base}/close", headers: agent.create_new_auth_token, params: { reason: reason, note: 'x' }, as: :json
+        end
+
+        expect(response).to have_http_status(:no_content)
+        expect(conversation.reload).to be_resolved
+        expect(conversation.ai_brain_silent_close?).to be(false)
+        expect(conversation.messages.where(content_type: :input_csat)).not_to be_empty
+      end
+    end
+  end
+
   it 'leaves the note out for a reason from the list' do
     post "#{base}/close", headers: agent.create_new_auth_token, params: { reason: 'IssueSolved', note: 'x' }, as: :json
 

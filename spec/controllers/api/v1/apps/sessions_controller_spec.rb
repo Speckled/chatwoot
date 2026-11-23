@@ -19,6 +19,9 @@ RSpec.describe 'AI Brain session outbound API', type: :request do
 
   around { |example| with_modified_env(AI_BRAIN_API_KEY: 'test-key') { example.run } }
 
+  # The patient's message puts the conversation inside the CSAT window, so only the mark keeps the survey away.
+  before { create(:message, account: account, inbox: inbox, conversation: conversation, message_type: :incoming) }
+
   def close(text)
     post url, headers: headers, params: { chatwootConversationId: conversation.id, outcome: 'SessionClosed', textToSend: text }, as: :json
   end
@@ -32,6 +35,7 @@ RSpec.describe 'AI Brain session outbound API', type: :request do
     expect(conversation.ai_brain_silent_close?).to be(true)
     expect(survey.due?).to be(false)
     expect { survey.perform }.not_to(change { conversation.messages.count })
+    expect(conversation.messages.where(content_type: :input_csat)).to be_empty
   end
 
   it 'sends the survey again once the conversation is reopened and a person resolves it' do
@@ -49,6 +53,6 @@ RSpec.describe 'AI Brain session outbound API', type: :request do
 
     expect(conversation.reload).to be_resolved
     expect(conversation.ai_brain_silent_close?).to be(false)
-    expect(conversation.messages.outgoing.count).to eq(1)
+    expect(conversation.messages.outgoing.pluck(:content, :content_type)).to eq([['Até logo!', 'input_csat']])
   end
 end

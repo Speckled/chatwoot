@@ -37,7 +37,8 @@ class Api::V1::Accounts::Conversations::AiBrainSessionsController < Api::V1::Acc
   end
 
   # A person closes the conversation from the dashboard: the backend records the reason and who closed, then the conversation
-  # is resolved. The patient is sent nothing.
+  # is resolved. The patient is sent nothing. A close because the patient stopped replying is a close for inactivity, so it
+  # sends no satisfaction survey either; the other reasons keep it.
   def close
     reason = params[:reason].to_s
     note = params[:note].to_s.strip
@@ -49,7 +50,10 @@ class Api::V1::Accounts::Conversations::AiBrainSessionsController < Api::V1::Acc
                             { reason: reason, note: reason == 'Other' ? note : nil, closedByUserId: Current.user.id }.compact)
       raise AiBrain::Client::UnavailableError, "Ending the session failed with HTTP #{status}" unless status == 204
 
-      @conversation.update!(status: :resolved) unless @conversation.resolved?
+      unless @conversation.resolved?
+        silently = reason == 'PatientStoppedReplying'
+        silently ? @conversation.ai_brain_resolve_silently! : @conversation.update!(status: :resolved)
+      end
     end
     head :no_content
   end
