@@ -346,7 +346,8 @@
         "1": "Sending",
         "2": "Sent",
         "3": "Failed",
-        "4": "Skipped"
+        "4": "Skipped",
+        "5": "Delivered"
       },
       "SENT_TO": "To",
       "DETAILS": "Details",

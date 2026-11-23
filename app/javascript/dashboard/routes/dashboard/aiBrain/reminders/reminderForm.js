@@ -21,6 +21,8 @@ export const DELIVERY_STATUS = {
   SENT: 2,
   FAILED: 3,
   SKIPPED: 4,
+  // WhatsApp delivered it, or the person has read it.
+  DELIVERED: 5,
 };
 
 // Event targets come from each calendar appointment: its client, or the professional whose calendar it is in.
