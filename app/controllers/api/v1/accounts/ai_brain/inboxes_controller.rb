@@ -38,6 +38,18 @@ class Api::V1::Accounts::AiBrain::InboxesController < Api::V1::Accounts::AiBrain
     head :no_content
   end
 
+  # Chooses the inbox the admin assistant sends its alerts to the owners through. Only a WhatsApp inbox the AI Brain
+  # serves can be chosen; replies still go through the inbox the owner wrote to.
+  def owner_assistant
+    inbox = Current.account.inboxes.find(params[:inbox_id])
+    unless inbox.channel_type == 'Channel::Whatsapp' && inbox.ai_brain_active?
+      return render json: { error: I18n.t('ai_brain.errors.owner_assistant_inbox') }, status: :unprocessable_entity
+    end
+
+    inbox.ai_brain_inbox.choose_for_owner_assistant!
+    render json: { ownerAssistant: true }
+  end
+
   # The inbox's approved WhatsApp templates. Outside the 24-hour window, WhatsApp delivers only these.
   def templates
     channel = Current.account.inboxes.find(params[:inbox_id]).channel
@@ -61,7 +73,7 @@ class Api::V1::Accounts::AiBrain::InboxesController < Api::V1::Accounts::AiBrain
       channelType: inbox.channel_type,
       phoneNumber: channel.try(:phone_number),
       provider: channel.try(:provider),
-      aiBrainInbox: inbox.ai_brain_inbox && { active: inbox.ai_brain_inbox.active? }
+      aiBrainInbox: inbox.ai_brain_inbox && { active: inbox.ai_brain_inbox.active?, ownerAssistant: inbox.ai_brain_inbox.owner_assistant? }
     }
   end
 

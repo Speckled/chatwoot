@@ -81,10 +81,15 @@ class Api::V1::Apps::OwnersController < Api::V1::Apps::BaseController
     DashboardAdministrator.new(account_user.account, account_user.user, nil) if account_user
   end
 
-  # The inbox the owner wrote to when it is still one of the account's AI Brain WhatsApp inboxes, else the first of them.
+  # The first of these that is still one of the account's AI Brain WhatsApp inboxes: the inbox given, such as the one a
+  # connect link was asked through; the inbox chosen for the admin assistant on the AI Brain overview; the inbox the owner
+  # last wrote through; the account's first one.
   def owner_inbox
-    inboxes = @owner.account.inboxes.where(channel_type: 'Channel::Whatsapp').order(:id).select(&:ai_brain_active?)
-    inboxes.find { |inbox| inbox.id == params[:inboxId].to_i } || inboxes.first
+    inboxes = @owner.account.inboxes.where(channel_type: 'Channel::Whatsapp').includes(:ai_brain_inbox).order(:id).select(&:ai_brain_active?)
+    given = inboxes.find { |inbox| inbox.id == params[:inboxId].to_i }
+    chosen = inboxes.find { |inbox| inbox.ai_brain_inbox.owner_assistant? }
+    last = inboxes.find { |inbox| inbox.id == @owner.last_inbox_id }
+    [given, chosen, last, inboxes.first].compact.first
   end
 
   # The user being changed, who must belong to the owner's account.

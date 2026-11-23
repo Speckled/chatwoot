@@ -59,6 +59,7 @@ en:
       no_inactivity_question: "This conversation is not waiting for an answer."
       invalid_close_reason: "Choose a reason. For Other, describe it in at most 500 characters."
       no_ai_session: "This conversation has no AI Brain session."
+      owner_assistant_inbox: "Only a WhatsApp inbox the AI Brain is active on can send the admin assistant's alerts."
     owner:
       unavailable: "Sorry, I can't handle your message right now. Please try again in a few minutes."
   hello: 'Hello world'

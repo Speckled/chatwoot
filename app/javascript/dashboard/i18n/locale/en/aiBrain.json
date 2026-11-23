@@ -10,6 +10,8 @@
     "INBOX_ROUTING": "Inbox routing",
     "INBOX": "Inbox",
     "CHANNEL": "Channel",
+    "OWNER_ASSISTANT_INBOX": "Admin assistant alerts",
+    "OWNER_ASSISTANT_INBOX_HINT": "The admin assistant sends its alerts to the owners through the chosen WhatsApp number. With none chosen, it uses the number each owner last wrote to. Replies always go through the number the owner wrote to.",
     "AGENT": "Agent",
     "NONE": "None",
     "CREATE": "Create",

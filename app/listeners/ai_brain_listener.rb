@@ -4,9 +4,12 @@ class AiBrainListener < BaseListener
     # A message from either side means the person's chat is alive again: its inactivity prompt goes, and the backend starts
     # its 30 minutes again from this message.
     message.conversation.ai_brain_conversation&.show_inactivity_prompt!(nil) if (message.incoming? || message.outgoing?) && !message.private?
-    return unless eligible?(message)
-
-    AiBrain::ResponseJob.perform_later(message.id)
+    # A staff member writing in their staff conversation talks to the staff agent; patients talk to the patient agent.
+    if AiBrain::StaffConversationJob.handles?(message)
+      AiBrain::StaffConversationJob.perform_later(message.id)
+    elsif eligible?(message)
+      AiBrain::ResponseJob.perform_later(message.id)
+    end
   end
 
   # Opening a conversation the bot still owns means a receptionist took it over. The bot's own handoffs mark it human

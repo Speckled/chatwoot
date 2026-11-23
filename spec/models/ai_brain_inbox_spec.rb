@@ -48,4 +48,38 @@ RSpec.describe AiBrainInbox do
     expect(staff_without_inbox.reload.additional_attributes[key]).to eq([])
     expect(staff.reload.additional_attributes[key]).to contain_exactly(flagged_inbox.id, inbox.id)
   end
+
+  describe 'the admin assistant inbox' do
+    let(:other_inbox) do
+      create(:inbox, account: account, channel: Channel::Whatsapp.create!(account: account, phone_number: '+5511999992222', provider: 'test',
+                                                                          provider_config: { 'source' => 'ai_brain_test' }))
+    end
+    let!(:link) { described_class.create!(account: account, inbox: inbox, active: true) }
+    let!(:other_link) { described_class.create!(account: account, inbox: other_inbox, active: true) }
+
+    it 'keeps one chosen inbox per account' do
+      link.choose_for_owner_assistant!
+      other_link.choose_for_owner_assistant!
+
+      expect([link.reload, other_link.reload].map(&:owner_assistant?)).to eq([false, true])
+    end
+
+    it 'chooses again an inbox whose flag another choice cleared since it was loaded' do
+      link.choose_for_owner_assistant!
+      described_class.find(other_link.id).choose_for_owner_assistant!
+
+      link.choose_for_owner_assistant!
+
+      expect(link.reload.owner_assistant).to be(true)
+      expect(other_link.reload.owner_assistant).to be(false)
+    end
+
+    it 'stops being chosen when the AI Brain stops serving it' do
+      link.choose_for_owner_assistant!
+
+      link.update!(active: false)
+
+      expect(link.reload).not_to be_owner_assistant
+    end
+  end
 end

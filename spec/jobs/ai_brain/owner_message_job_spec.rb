@@ -33,6 +33,18 @@ describe AiBrain::OwnerMessageJob do
     expect(sent).to eq([['5551995684103', 'Vou te mandar o link.'], ['5551995684103', 'https://api.test/connect/abc'],
                         ['5551995684103', 'Depois me avise.']])
     expect(job).to have_received(:sleep).with(1).twice
+    expect(owner.reload.last_inbox_id).to eq(inbox.id)
+  end
+
+  it 'still runs the turn for an owner who is no longer an administrator' do
+    owner
+    account.account_users.find_by(user_id: owner_user.id).update!(role: :agent)
+    allow(client).to receive(:post).and_return([200, { 'textToSend' => 'Olá!' }])
+
+    job.perform(inbox.id, owner.id, '5551995684103', message)
+
+    expect(sent).to eq([['5551995684103', 'Olá!']])
+    expect(owner.reload.last_inbox_id).to eq(inbox.id)
   end
 
   it 'sends only the reply when there are no follow-ups' do

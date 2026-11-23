@@ -35,6 +35,7 @@ pt_BR:
       no_inactivity_question: "Esta conversa não está esperando uma resposta."
       invalid_close_reason: "Escolha um motivo. Para Outro, descreva em até 500 caracteres."
       no_ai_session: "Esta conversa não tem sessão da AI Brain."
+      owner_assistant_inbox: "Só uma caixa do WhatsApp com o AI Brain ativo pode enviar os avisos do assistente administrativo."
     owner:
       unavailable: "Desculpe, não consegui atender sua mensagem agora. Tente de novo em alguns minutos."
   hello: 'Olá, mundo'

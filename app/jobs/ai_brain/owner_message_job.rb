@@ -18,6 +18,9 @@ class AiBrain::OwnerMessageJob < ApplicationJob
     @inbox = Inbox.find(inbox_id)
     @from = from
     owner = AiBrainOwner.find(owner_id)
+    # Alerts go through this inbox while the account has chosen none (Apps::OwnersController#owner_inbox). Written without
+    # validations: an owner who stopped being an administrator since the message arrived still gets the backend's answer.
+    owner.update_column(:last_inbox_id, inbox_id) # rubocop:disable Rails/SkipsModelValidations
 
     body = {
       ownerUserId: owner.user_id,
