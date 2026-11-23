@@ -18,8 +18,9 @@ class CsatSurveyService
   end
 
   # Whether resolving the conversation would send it a survey; the AI Brain then sends its closing message as the survey.
+  # Never after the AI Brain closed the session for inactivity without a message: the patient is told nothing then.
   def due?
-    !conversation.tweet? && csat_enabled? && !csat_already_sent? && csat_allowed_by_survey_rules?
+    !conversation.tweet? && !conversation.ai_brain_silent_close? && csat_enabled? && !csat_already_sent? && csat_allowed_by_survey_rules?
   end
 
   private

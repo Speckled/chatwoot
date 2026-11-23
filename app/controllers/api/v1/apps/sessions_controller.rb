@@ -42,8 +42,7 @@ class Api::V1::Apps::SessionsController < Api::V1::Apps::BaseController
       if closing
         conversation.ai_brain_conversation&.reset_to_bot!
         Current.executed_by = AiBrain::BotSender.for(conversation.account)
-        # Same save as waiting_since, so the status change still dispatches and sends the CSAT survey.
-        conversation.update!(status: :resolved, waiting_since: nil) unless conversation.resolved?
+        resolve(conversation, silently: text.blank?)
       end
     end
 
@@ -53,6 +52,14 @@ class Api::V1::Apps::SessionsController < Api::V1::Apps::BaseController
   end
 
   private
+
+  # A close with no text is a close for inactivity: the patient is told nothing, so no CSAT survey goes out either.
+  # Otherwise the status changes in the same save as waiting_since, so it still dispatches and sends the survey.
+  def resolve(conversation, silently:)
+    return if conversation.resolved?
+
+    silently ? conversation.ai_brain_resolve_silently! : conversation.update!(status: :resolved, waiting_since: nil)
+  end
 
   def find_conversation
     by_session = AiBrainConversation.find_by(session_id: params[:session_id])&.conversation if params[:session_id].present?
