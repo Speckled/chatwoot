@@ -64,6 +64,16 @@ RSpec.describe AiBrainInbox do
       expect([link.reload, other_link.reload].map(&:owner_assistant?)).to eq([false, true])
     end
 
+    it 'chooses again an inbox whose flag another choice cleared since it was loaded' do
+      link.choose_for_owner_assistant!
+      described_class.find(other_link.id).choose_for_owner_assistant!
+
+      link.choose_for_owner_assistant!
+
+      expect(link.reload.owner_assistant).to be(true)
+      expect(other_link.reload.owner_assistant).to be(false)
+    end
+
     it 'stops being chosen when the AI Brain stops serving it' do
       link.choose_for_owner_assistant!
 

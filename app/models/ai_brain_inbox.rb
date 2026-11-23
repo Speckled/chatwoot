@@ -10,10 +10,13 @@ class AiBrainInbox < ApplicationRecord
   after_save :flag_staff_contacts, if: -> { active? && (previously_new_record? || saved_change_to_active?) }
 
   # Makes this the inbox the admin assistant sends its alerts to the owners through, and no other inbox of the account.
-  # The account's rows are locked so two choices at once leave one chosen, not a unique index error.
+  # The account's rows are locked so two choices at once leave one chosen, not a unique index error. This row is read
+  # again under the lock: another choice may have cleared its flag since it was loaded, and saving a flag that is
+  # already true in memory would write nothing.
   def choose_for_owner_assistant!
     transaction do
       account.ai_brain_inboxes.lock.load
+      reload
       previous = account.ai_brain_inboxes.where(owner_assistant: true).where.not(id: id)
       previous.update_all(owner_assistant: false, updated_at: Time.current) # rubocop:disable Rails/SkipsModelValidations -- only the flag changes
       update!(owner_assistant: true)
