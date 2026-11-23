@@ -10,7 +10,10 @@ class Api::V1::Accounts::AiBrain::BusinessRulesController < Api::V1::Accounts::A
       :inactivityNudgeMinutes, :inactivityAutoCloseMinutes, :otherSessionInactivityMinutes, :chargeTiming,
       companyRules: [], prohibitedBehaviors: [],
       requiredOnboardingFields: [], optionalOnboardingFields: [],
-      workingHours: [:startTime, :endTime, :defaultSlotDurationMinutes, { activeDays: [], blackoutDates: [] }],
+      workingHours: [:defaultSlotDurationMinutes, {
+        weekly: [:day, { intervals: [:start, :end] }],
+        dateOverrides: [:date, { intervals: [:start, :end] }]
+      }],
       paymentConfirmationTemplate: [:name, :language, :category, { bodyParameters: [] }]
     )
     render_upstream(client.put('business-rules', rules.to_h))

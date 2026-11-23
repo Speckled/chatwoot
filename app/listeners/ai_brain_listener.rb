@@ -1,9 +1,12 @@
 class AiBrainListener < BaseListener
   def message_created(event)
     message = extract_message_and_account(event)[0]
-    return unless eligible?(message)
-
-    AiBrain::ResponseJob.perform_later(message.id)
+    # A staff member writing in their staff conversation talks to the staff agent; patients talk to the patient agent.
+    if AiBrain::StaffConversationJob.handles?(message)
+      AiBrain::StaffConversationJob.perform_later(message.id)
+    elsif eligible?(message)
+      AiBrain::ResponseJob.perform_later(message.id)
+    end
   end
 
   # Opening a conversation the bot still owns means a receptionist took it over. The bot's own handoffs mark it human
@@ -35,7 +38,7 @@ class AiBrainListener < BaseListener
       message.conversation.ai_brain_bot_owned?
   end
 
-  # Conversations the AI Brain started to message staff never have an AI session.
+  # Staff conversations never have a patient's AI session; the staff agent keeps none in Chatwoot.
   def ai_brain_session?(conversation)
     conversation.inbox.ai_brain_inbox.present? && !conversation.ai_brain_staff?
   end

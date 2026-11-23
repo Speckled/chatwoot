@@ -38,4 +38,26 @@ RSpec.describe 'AI Brain business rules API', type: :request do
       expect(body['paymentConfirmationTemplate']).to eq(template.deep_stringify_keys)
     end
   end
+
+  it 'passes the working hours on as weekly intervals and dates with their own hours' do
+    allow(client).to receive(:put).and_return([200, {}])
+    working_hours = {
+      defaultSlotDurationMinutes: 30,
+      weekly: [{ day: 1, intervals: [{ start: '08:00:00', end: '12:00:00' }, { start: '14:00:00', end: '18:00:00' }] }],
+      dateOverrides: [
+        { date: '2030-12-25', intervals: [] },
+        { date: '2030-12-26', intervals: [{ start: '09:00:00', end: '13:00:00' }] }
+      ]
+    }
+
+    put "/api/v1/accounts/#{account.id}/ai_brain/business_rules",
+        headers: admin.create_new_auth_token,
+        params: { businessRules: { businessName: 'Clínica', workingHours: working_hours.merge(activeDays: [1], startTime: '08:00') } },
+        as: :json
+
+    expect(response).to have_http_status(:ok)
+    expect(client).to have_received(:put) do |_path, body|
+      expect(body['workingHours']).to eq(working_hours.deep_stringify_keys)
+    end
+  end
 end

@@ -13,6 +13,7 @@ import InstructionsTab from './tabs/InstructionsTab.vue';
 import KnowledgeTab from './tabs/KnowledgeTab.vue';
 import ServicesPricingTab from './tabs/ServicesPricingTab.vue';
 import { RULES_FORM_TABS, RULES_TABS, tabIndex } from './rulesTabs';
+import { forSave, scheduleProblem } from './workingHours';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -52,14 +53,24 @@ const load = async () => {
 };
 onMounted(load);
 const saveRules = async () => {
+  // Every save sends the working hours, also from the Configuration tab, which doesn't show them: say why it stops.
+  const hoursProblem = scheduleProblem(rules.value.workingHours, day =>
+    t(`AI_BRAIN.DAYS.${day}`)
+  );
+  if (hoursProblem) {
+    useAlert(
+      t(
+        `AI_BRAIN.WORKING_HOURS_PROBLEM.${hoursProblem.key}`,
+        hoursProblem.params
+      )
+    );
+    return;
+  }
   busy.value = true;
   try {
     const { data } = await rulesAPI.update({
       ...rules.value,
-      workingHours: {
-        ...rules.value.workingHours,
-        blackoutDates: rules.value.workingHours.blackoutDates,
-      },
+      workingHours: forSave(rules.value.workingHours),
     });
     rules.value = data;
     useAlert(t('AI_BRAIN.SAVED'));
