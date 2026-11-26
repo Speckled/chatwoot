@@ -356,11 +356,24 @@
     },
     "PAYMENT_TEMPLATE": {
       "TITLE": "Modelo de confirmação de pagamento",
-      "HINT": "O WhatsApp só entrega modelos aprovados a um paciente que escreveu pela última vez há mais de 24 horas. Escolha o modelo que confirma um pagamento do Mercado Pago nesse caso; dentro da janela o paciente recebe o texto de sempre.",
+      "HINT": "O WhatsApp só entrega modelos aprovados a um paciente que escreveu pela última vez há mais de 24 horas. Escolha o modelo que confirma um pagamento do Mercado Pago nesse caso; dentro da janela o paciente recebe o texto de sempre."
+    },
+    "TEMPLATE_PICKER": {
       "INBOX": "Listar modelos de",
       "TEMPLATE": "Modelo",
-      "NONE": "Nenhum modelo (só texto)",
+      "NONE": "Nenhum modelo (não é enviado fora da janela de 24 horas)",
       "PARAMETER": "Parâmetro {n}"
+    },
+    "MESSAGE_TEMPLATES": {
+      "TITLE": "Modelos de mensagem",
+      "HINT": "O WhatsApp só entrega modelos aprovados a quem escreveu pela última vez há mais de 24 horas. Escolha o modelo de cada mensagem nesse caso; sem um modelo, a mensagem não é enviada. Dentro da janela vai o texto de sempre. Os avisos vão para a equipe no canal privado; a resposta vai para o paciente.",
+      "STAFF_QUESTION": "Aviso: pergunta de um paciente para a clínica",
+      "HANDOFF_ALERT": "Aviso: paciente encaminhado para uma pessoa",
+      "REFUND_REQUESTED": "Aviso: consulta paga cancelada",
+      "SESSION_CLOSED_UNANSWERED": "Aviso: conversa encerrada sem resposta",
+      "CONNECT_SUCCEEDED": "Aviso: conta conectada",
+      "CONNECT_FAILED": "Aviso: conta não conectada",
+      "STAFF_ANSWER": "Resposta da clínica à pergunta de um paciente"
     },
     "PAYMENTS": {
       "TITLE": "Pagamentos",
@@ -445,7 +458,8 @@
       "ASKED": "O assistente perguntou à clínica",
       "PLACEHOLDER": "Sua resposta vai para o paciente",
       "SEND": "Responder ao paciente",
-      "SAVE_AS_FAQ": "Salvar também como FAQ"
+      "SAVE_AS_FAQ": "Salvar também como FAQ",
+      "NOT_SENT": "A resposta foi salva, mas não foi enviada: {reason} Responda de novo depois que o paciente escrever, e ela será enviada."
     },
     "ADMIN_ASSISTANT": {
       "OPEN": "Assistente",

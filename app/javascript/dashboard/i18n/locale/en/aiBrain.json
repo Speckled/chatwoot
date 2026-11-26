@@ -356,11 +356,24 @@
     },
     "PAYMENT_TEMPLATE": {
       "TITLE": "Payment confirmation template",
-      "HINT": "WhatsApp delivers only approved templates to a patient who last wrote more than 24 hours ago. Pick the template that confirms a Mercado Pago payment in that case; inside the window the patient gets the usual text.",
+      "HINT": "WhatsApp delivers only approved templates to a patient who last wrote more than 24 hours ago. Pick the template that confirms a Mercado Pago payment in that case; inside the window the patient gets the usual text."
+    },
+    "TEMPLATE_PICKER": {
       "INBOX": "List templates from",
       "TEMPLATE": "Template",
-      "NONE": "No template (free text only)",
+      "NONE": "No template (not sent outside the 24-hour window)",
       "PARAMETER": "Parameter {n}"
+    },
+    "MESSAGE_TEMPLATES": {
+      "TITLE": "Message templates",
+      "HINT": "WhatsApp delivers only approved templates to someone who last wrote more than 24 hours ago. Pick the template each message goes as in that case; without one, the message is not sent. Inside the window the usual text goes. The notices go to staff on the private channel; the answer goes to the patient.",
+      "STAFF_QUESTION": "Notice: a patient's question for the clinic",
+      "HANDOFF_ALERT": "Notice: a patient handed over to a person",
+      "REFUND_REQUESTED": "Notice: a paid appointment cancelled",
+      "SESSION_CLOSED_UNANSWERED": "Notice: a chat closed with no answer",
+      "CONNECT_SUCCEEDED": "Notice: an account connected",
+      "CONNECT_FAILED": "Notice: an account could not be connected",
+      "STAFF_ANSWER": "The clinic's answer to a patient's question"
     },
     "PAYMENTS": {
       "TITLE": "Payments",
@@ -445,7 +458,8 @@
       "ASKED": "The assistant asked the clinic",
       "PLACEHOLDER": "Your answer goes to the patient",
       "SEND": "Answer the patient",
-      "SAVE_AS_FAQ": "Also save as an FAQ"
+      "SAVE_AS_FAQ": "Also save as an FAQ",
+      "NOT_SENT": "The answer is saved but was not sent: {reason} Answer again after the patient writes, and it goes out."
     },
     "ADMIN_ASSISTANT": {
       "OPEN": "Assistant",

@@ -71,12 +71,16 @@ watch(
 const answerStaffQuestion = async question => {
   aiBusy.value = true;
   try {
-    await aiBrainConversations.answerStaffQuestion(
+    const { data } = await aiBrainConversations.answerStaffQuestion(
       props.chat.id,
       question.id,
       staffAnswers.value[question.id],
       !!saveAsFaq.value[question.id]
     );
+    // Outside WhatsApp's 24-hour window with no template, the answer is saved and nothing is posted.
+    if (data?.sent === false) {
+      useAlert(t('AI_BRAIN.STAFF_QUESTION.NOT_SENT', { reason: data.reason }));
+    }
     staffAnswers.value = { ...staffAnswers.value, [question.id]: '' };
     await loadAiBrain();
   } catch (error) {

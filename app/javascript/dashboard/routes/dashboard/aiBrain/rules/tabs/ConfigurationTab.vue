@@ -9,7 +9,8 @@ import Select from 'dashboard/components-next/select/Select.vue';
 import ComboBox from 'dashboard/components-next/combobox/ComboBox.vue';
 import StringListEditor from 'dashboard/components-next/aiBrain/StringListEditor.vue';
 import aiModelsAPI from 'dashboard/api/aiBrain/aiModels';
-import PaymentTemplatePicker from './PaymentTemplatePicker.vue';
+import WhatsAppTemplatePicker from './WhatsAppTemplatePicker.vue';
+import { useWhatsAppTemplates } from './useWhatsAppTemplates';
 
 // The backend's ChargeTiming values.
 const CHARGE_ON_REQUEST = 0;
@@ -17,6 +18,65 @@ const CHARGE_AFTER_BOOKING = 1;
 const MODELS_LOADING = 'loading';
 const MODELS_READY = 'ready';
 const MODELS_UNAVAILABLE = 'unavailable';
+const PAYMENT_PLACEHOLDERS = [
+  'business_name',
+  'client_name',
+  'client_first_name',
+  'amount',
+  'description',
+];
+// The messages the system starts that take a template of their own, by the backend's key (MessageTemplates.Keys), and
+// the placeholders their body values may use.
+const MESSAGE_TEMPLATES = [
+  {
+    key: 'owner.message.staff_question',
+    label: 'STAFF_QUESTION',
+    placeholders: ['business_name', 'client_name', 'question'],
+  },
+  {
+    key: 'owner.message.handoff_alert',
+    label: 'HANDOFF_ALERT',
+    placeholders: ['business_name', 'client_name', 'reason'],
+  },
+  {
+    key: 'owner.message.refund_requested',
+    label: 'REFUND_REQUESTED',
+    placeholders: [
+      'business_name',
+      'client_name',
+      'amount',
+      'description',
+      'kind',
+      'payment_id',
+    ],
+  },
+  {
+    key: 'owner.message.session_closed_unanswered',
+    label: 'SESSION_CLOSED_UNANSWERED',
+    placeholders: ['business_name', 'client_name'],
+  },
+  {
+    key: 'owner.message.connect_succeeded',
+    label: 'CONNECT_SUCCEEDED',
+    placeholders: ['business_name', 'service', 'account'],
+  },
+  {
+    key: 'owner.message.connect_failed',
+    label: 'CONNECT_FAILED',
+    placeholders: ['business_name', 'service', 'reason'],
+  },
+  {
+    key: 'message.staff_answer',
+    label: 'STAFF_ANSWER',
+    placeholders: [
+      'business_name',
+      'client_name',
+      'client_first_name',
+      'question',
+      'answer',
+    ],
+  },
+];
 
 // The business rules object the Rules page loads and saves.
 const rules = defineModel({ type: Object, required: true });
@@ -31,6 +91,23 @@ const chargeTimingOptions = computed(() => [
     label: t('AI_BRAIN.CHARGE_TIMING.AFTER_BOOKING'),
   },
 ]);
+const {
+  inboxId: templateInboxId,
+  inboxOptions: templateInboxOptions,
+  templates: whatsAppTemplates,
+} = useWhatsAppTemplates();
+
+const messageTemplate = key =>
+  (rules.value.messageTemplates || []).find(binding => binding.key === key) ||
+  null;
+// An empty name removes the message's template when the rules are saved.
+const setMessageTemplate = (key, template) => {
+  const others = (rules.value.messageTemplates || []).filter(
+    binding => binding.key !== key
+  );
+  rules.value.messageTemplates = [...others, { ...template, key }];
+};
+
 const providers = ref([]);
 const models = ref([]);
 const modelsState = ref(MODELS_LOADING);
@@ -123,7 +200,56 @@ watch(
     </SectionLayout>
 
     <SectionLayout :title="t('AI_BRAIN.PAYMENT_TEMPLATE.TITLE')" with-border>
-      <PaymentTemplatePicker v-model="rules.paymentConfirmationTemplate" />
+      <div class="grid gap-3">
+        <p class="text-sm text-n-slate-11">
+          {{ t('AI_BRAIN.PAYMENT_TEMPLATE.HINT') }}
+        </p>
+        <WithLabel
+          name="payment-template-inbox"
+          :label="t('AI_BRAIN.TEMPLATE_PICKER.INBOX')"
+        >
+          <Select
+            v-model="templateInboxId"
+            :options="templateInboxOptions"
+            :aria-label="t('AI_BRAIN.TEMPLATE_PICKER.INBOX')"
+          />
+        </WithLabel>
+        <WhatsAppTemplatePicker
+          v-model="rules.paymentConfirmationTemplate"
+          name="payment-template"
+          :label="t('AI_BRAIN.TEMPLATE_PICKER.TEMPLATE')"
+          :templates="whatsAppTemplates"
+          :placeholders="PAYMENT_PLACEHOLDERS"
+        />
+      </div>
+    </SectionLayout>
+
+    <SectionLayout :title="t('AI_BRAIN.MESSAGE_TEMPLATES.TITLE')" with-border>
+      <div class="grid gap-4">
+        <p class="text-sm text-n-slate-11">
+          {{ t('AI_BRAIN.MESSAGE_TEMPLATES.HINT') }}
+        </p>
+        <WithLabel
+          name="message-templates-inbox"
+          :label="t('AI_BRAIN.TEMPLATE_PICKER.INBOX')"
+        >
+          <Select
+            v-model="templateInboxId"
+            :options="templateInboxOptions"
+            :aria-label="t('AI_BRAIN.TEMPLATE_PICKER.INBOX')"
+          />
+        </WithLabel>
+        <WhatsAppTemplatePicker
+          v-for="message in MESSAGE_TEMPLATES"
+          :key="message.key"
+          :model-value="messageTemplate(message.key)"
+          :name="`message-template-${message.label.toLowerCase()}`"
+          :label="t(`AI_BRAIN.MESSAGE_TEMPLATES.${message.label}`)"
+          :templates="whatsAppTemplates"
+          :placeholders="message.placeholders"
+          @update:model-value="setMessageTemplate(message.key, $event)"
+        />
+      </div>
     </SectionLayout>
 
     <SectionLayout :title="t('AI_BRAIN.MODEL_CONFIG')" with-border>
