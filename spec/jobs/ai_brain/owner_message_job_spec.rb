@@ -57,6 +57,15 @@ describe AiBrain::OwnerMessageJob do
     expect(owner.last_inbox_id).to eq(inbox.id)
   end
 
+  it 'keeps the later time when an older message is retried after a newer one' do
+    allow(client).to receive(:post).and_return([200, { 'textToSend' => 'Olá!' }])
+
+    job.perform(inbox.id, owner.id, '5551995684103', message.merge('timestamp' => '1764068400'))
+    job.perform(inbox.id, owner.id, '5551995684103', message.merge('timestamp' => '1764064800'))
+
+    expect(owner.reload.last_incoming_at_in(inbox.id)).to eq(Time.zone.at(1_764_068_400))
+  end
+
   it 'sends only the reply when there are no follow-ups' do
     allow(client).to receive(:post).and_return([200, { 'textToSend' => 'Olá!' }])
 

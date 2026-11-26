@@ -32,10 +32,11 @@ class AiBrainOwner < ApplicationRecord
 
   # Records a message the owner wrote to an inbox: alerts go through it while the account has chosen none, and WhatsApp's
   # 24-hour window counts from it. Written without validations: an owner who stopped being an administrator since the
-  # message arrived still gets the backend's answer.
+  # message arrived still gets the backend's answer. An older message, such as a retried turn, keeps the later time.
   def wrote_to!(inbox_id, at)
+    latest = [last_incoming_at_in(inbox_id), at].compact.max
     # rubocop:disable Rails/SkipsModelValidations
-    update_columns(last_inbox_id: inbox_id, last_incoming_at: last_incoming_at.merge(inbox_id.to_s => at.iso8601))
+    update_columns(last_inbox_id: inbox_id, last_incoming_at: last_incoming_at.merge(inbox_id.to_s => latest.iso8601))
     # rubocop:enable Rails/SkipsModelValidations
   end
 
