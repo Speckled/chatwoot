@@ -362,6 +362,31 @@
       "NONE": "No template (free text only)",
       "PARAMETER": "Parameter {n}"
     },
+    "AUDIT": {
+      "TITLE": "Changes by the assistant",
+      "DESCRIPTION": "Changes staff asked for through the AI assistant, newest first: who asked, the description they confirmed and how it ended. Read-only.",
+      "WHEN": "When",
+      "WHO": "Asked by",
+      "WHAT": "Change",
+      "OUTCOME": "Outcome",
+      "RESULT": "Result",
+      "DECIDED_AT": "Decided {time}",
+      "PERSON": "Person",
+      "EVERYONE": "Everyone",
+      "FROM": "From",
+      "TO": "To",
+      "EMPTY": "No changes in this period.",
+      "AT_LIMIT": "Showing the latest {limit} changes. Choose a shorter period or a person to see older ones.",
+      "OUTCOMES": {
+        "pending": "Waiting for confirmation",
+        "confirmed": "Confirmed",
+        "running": "In progress",
+        "failed": "Failed",
+        "refused": "Refused",
+        "expired": "Expired",
+        "no_longer_allowed": "Cancelled: the person may no longer make this change"
+      }
+    },
     "PAYMENTS": {
       "TITLE": "Payments",
       "DESCRIPTION": "Mercado Pago charges the AI Brain made for patients, newest first. A paid appointment the patient cancelled waits here for you to decide on a refund.",

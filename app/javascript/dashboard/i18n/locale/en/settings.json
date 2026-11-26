@@ -338,6 +338,7 @@
     "AI_BRAIN_REMINDERS": "Reminders",
     "AI_BRAIN_STAFF": "Staff",
     "AI_BRAIN_PAYMENTS": "Payments",
+    "AI_BRAIN_AUDIT": "Changes by the assistant",
     "AI_BRAIN_TEST": "Test conversations",
     "CALLS": "Calls",
     "CAPTAIN_ASSISTANTS": "Assistants",

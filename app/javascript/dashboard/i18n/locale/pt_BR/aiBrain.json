@@ -362,6 +362,31 @@
       "NONE": "Nenhum modelo (só texto)",
       "PARAMETER": "Parâmetro {n}"
     },
+    "AUDIT": {
+      "TITLE": "Alterações pelo assistente",
+      "DESCRIPTION": "Alterações que a equipe pediu ao assistente de IA, das mais recentes às mais antigas: quem pediu, a descrição que confirmou e como terminou. Somente leitura.",
+      "WHEN": "Quando",
+      "WHO": "Pedida por",
+      "WHAT": "Alteração",
+      "OUTCOME": "Situação",
+      "RESULT": "Resultado",
+      "DECIDED_AT": "Decidida em {time}",
+      "PERSON": "Pessoa",
+      "EVERYONE": "Todos",
+      "FROM": "De",
+      "TO": "Até",
+      "EMPTY": "Nenhuma alteração neste período.",
+      "AT_LIMIT": "Mostrando as {limit} alterações mais recentes. Escolha um período menor ou uma pessoa para ver as mais antigas.",
+      "OUTCOMES": {
+        "pending": "Aguardando confirmação",
+        "confirmed": "Confirmada",
+        "running": "Em andamento",
+        "failed": "Falhou",
+        "refused": "Recusada",
+        "expired": "Expirada",
+        "no_longer_allowed": "Cancelada: a pessoa não pode mais fazer esta alteração"
+      }
+    },
     "PAYMENTS": {
       "TITLE": "Pagamentos",
       "DESCRIPTION": "Cobranças do Mercado Pago que o AI Brain fez para pacientes, das mais novas às mais antigas. Uma consulta paga que o paciente cancelou espera aqui você decidir sobre o reembolso.",
