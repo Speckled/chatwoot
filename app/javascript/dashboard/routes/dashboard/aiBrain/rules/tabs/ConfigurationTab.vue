@@ -14,6 +14,8 @@ import PaymentTemplatePicker from './PaymentTemplatePicker.vue';
 // The backend's ChargeTiming values.
 const CHARGE_ON_REQUEST = 0;
 const CHARGE_AFTER_BOOKING = 1;
+// The backend's GlobalBusinessRules.MaxAssistantNameLength.
+const ASSISTANT_NAME_MAX_LENGTH = 40;
 const MODELS_LOADING = 'loading';
 const MODELS_READY = 'ready';
 const MODELS_UNAVAILABLE = 'unavailable';
@@ -94,6 +96,19 @@ watch(
       <div class="grid gap-4">
         <WithLabel name="business-name" :label="t('AI_BRAIN.BUSINESS_NAME')">
           <NextInput v-model="rules.businessName" class="w-full" />
+        </WithLabel>
+        <WithLabel
+          name="assistant-name"
+          :label="t('AI_BRAIN.ASSISTANT_NAME.LABEL')"
+        >
+          <NextInput
+            v-model="rules.assistantName"
+            class="w-full"
+            :maxlength="ASSISTANT_NAME_MAX_LENGTH"
+          />
+          <p class="text-xs text-n-slate-11">
+            {{ t('AI_BRAIN.ASSISTANT_NAME.HINT') }}
+          </p>
         </WithLabel>
         <WithLabel name="time-zone" :label="t('AI_BRAIN.TIME_ZONE')">
           <NextInput v-model="rules.timeZone" class="w-full" required />

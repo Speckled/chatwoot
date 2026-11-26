@@ -27,6 +27,10 @@
     "CONFLICT": "This agent changed. Reload before saving.",
     "RELOAD": "Reload",
     "BUSINESS_NAME": "Business name",
+    "ASSISTANT_NAME": {
+      "LABEL": "Assistant's name",
+      "HINT": "She introduces herself to patients as \"Clara, sua assistente virtual\", with the name you give her, and it is the name her messages show in conversations."
+    },
     "TIME_ZONE": "Time zone",
     "ALLOWLIST": "Enforce allowlist",
     "CHARGE_TIMING": {

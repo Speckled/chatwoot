@@ -27,6 +27,10 @@
     "CONFLICT": "Este agente foi alterado. Recarregue antes de salvar.",
     "RELOAD": "Recarregar",
     "BUSINESS_NAME": "Nome da empresa",
+    "ASSISTANT_NAME": {
+      "LABEL": "Nome da assistente",
+      "HINT": "É como ela se apresenta aos pacientes (\"Clara, sua assistente virtual\", com o nome que você der) e o nome das mensagens dela nas conversas."
+    },
     "TIME_ZONE": "Fuso horário",
     "ALLOWLIST": "Exigir lista de permissões",
     "CHARGE_TIMING": {
