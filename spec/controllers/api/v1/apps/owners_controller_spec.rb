@@ -145,7 +145,7 @@ RSpec.describe 'AI Brain owner user changes', type: :request do
 
     it 'refuses a missing text, an account without an AI Brain WhatsApp inbox, and a message WhatsApp did not accept' do
       post url, headers: headers, params: { text: ' ' }, as: :json
-      expect(response.parsed_body['error']).to eq('text is required')
+      expect(response.parsed_body['error']).to eq('text or template is required')
 
       allow(provider).to receive(:send_text).and_return(nil)
       post url, headers: headers, params: { text: 'Oi' }, as: :json
@@ -154,6 +154,58 @@ RSpec.describe 'AI Brain owner user changes', type: :request do
       AiBrainInbox.where(account: account).find_each { |ai_inbox| ai_inbox.update!(active: false) }
       post url, headers: headers, params: { text: 'Oi' }, as: :json
       expect(response.parsed_body['error']).to eq('The account has no AI Brain WhatsApp inbox')
+    end
+
+    it 'sends a template in place of the text, with its body values in order' do
+      allow(provider).to receive(:send_template).and_return('wamid.template')
+      template = { name: 'aviso', language: 'pt_BR', category: 'UTILITY', bodyParameters: %w[Ana sábado] }
+
+      post url, headers: headers, params: { template: template, inboxId: second_inbox.id }, as: :json
+
+      expect(response.parsed_body).to eq('inboxId' => second_inbox.id)
+      expect(provider).to have_received(:send_template).with('5551995684103', hash_including(name: 'aviso', lang_code: 'pt_BR'), nil)
+      expect(provider).not_to have_received(:send_text)
+
+      post url, headers: headers, params: { template: { name: 'aviso' } }, as: :json
+      expect(response.parsed_body['error']).to eq('A template needs a name and a language')
+    end
+
+    describe 'the window' do
+      it 'names the inbox a message would go through and when the owner last wrote to it, or null' do
+        window_url = "/api/v1/apps/chatwoot-main/owners/#{owner_user.id}/window"
+        AiBrainOwner.find_by(user: owner_user).wrote_to!(second_inbox.id, Time.zone.parse('2026-11-25T10:00:00Z'))
+
+        get window_url, headers: headers, params: { inboxId: second_inbox.id }
+        expect(response.parsed_body).to eq('inboxId' => second_inbox.id, 'lastIncomingAt' => '2026-11-25T10:00:00Z')
+
+        # The owner last wrote through the second inbox, so it is the one alerts go through.
+        get window_url, headers: headers
+        expect(response.parsed_body).to eq('inboxId' => second_inbox.id, 'lastIncomingAt' => '2026-11-25T10:00:00Z')
+
+        get window_url, headers: headers, params: { inboxId: first_inbox.id }
+        expect(response.parsed_body).to eq('inboxId' => first_inbox.id, 'lastIncomingAt' => nil)
+      end
+
+      it 'counts a message from before the owner joined the private channel, from a contact with their number' do
+        contact = create(:contact, account: account, phone_number: '+5551995684103')
+        conversation = create(:conversation, account: account, inbox: first_inbox, contact: contact)
+        create(:message, account: account, inbox: first_inbox, conversation: conversation, message_type: :incoming, sender: contact,
+                         created_at: Time.zone.parse('2026-11-24T09:00:00Z'))
+        AiBrainOwner.find_by(user: owner_user).wrote_to!(first_inbox.id, Time.zone.parse('2026-11-20T09:00:00Z'))
+
+        get "/api/v1/apps/chatwoot-main/owners/#{owner_user.id}/window", headers: headers, params: { inboxId: first_inbox.id }
+
+        expect(response.parsed_body).to eq('inboxId' => first_inbox.id, 'lastIncomingAt' => '2026-11-24T09:00:00Z')
+      end
+
+      it 'refuses as sending does when there is no inbox to send through' do
+        AiBrainInbox.where(account: account).find_each { |ai_inbox| ai_inbox.update!(active: false) }
+
+        get "/api/v1/apps/chatwoot-main/owners/#{owner_user.id}/window", headers: headers
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.parsed_body['error']).to eq('The account has no AI Brain WhatsApp inbox')
+      end
     end
   end
 

@@ -55,6 +55,7 @@ Rails.application.routes.draw do
       patch 'apps/:app_id/owners/:user_id/users/:chatwoot_user_id', to: 'apps/owners#update_user'
       delete 'apps/:app_id/owners/:user_id/users/:chatwoot_user_id', to: 'apps/owners#remove_user'
       post 'apps/:app_id/owners/:user_id/messages', to: 'apps/owners#create_message'
+      get 'apps/:app_id/owners/:user_id/window', to: 'apps/owners#window'
       post 'apps/:app_id/inboxes/:inbox_id/messages', to: 'apps/inbox_messages#create'
       post 'apps/:app_id/accounts/:account_id/staff_contacts', to: 'apps/staff#create_contact'
       delete 'apps/:app_id/accounts/:account_id/staff_contacts', to: 'apps/staff#destroy_contact'

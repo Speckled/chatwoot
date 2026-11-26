@@ -157,13 +157,8 @@ class Api::V1::Apps::InboxMessagesController < Api::V1::Apps::BaseController
     }
   end
 
-  # The shape Whatsapp::TemplateProcessorService reads: body parameters numbered from 1, in order.
   def template_params
-    return if template.blank?
-
-    body = Array(template[:bodyParameters]).each_with_index.to_h { |value, index| [(index + 1).to_s, value.to_s] }
-    { 'name' => template[:name], 'language' => template[:language], 'category' => template[:category].presence,
-      'processed_params' => { 'body' => body } }.compact
+    AiBrain::TemplateParams.build(template)
   end
 
   def account

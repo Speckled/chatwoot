@@ -44,23 +44,62 @@ class Api::V1::Apps::OwnersController < Api::V1::Apps::BaseController
     render json: { userId: @user.id, removed: true }
   end
 
-  # Sends the owner a WhatsApp text the AI Brain starts on its own, such as the confirmation that an account got connected.
-  # Owner conversations never exist in Chatwoot, so it goes straight through the provider, like the assistant's replies.
+  # Sends the owner a WhatsApp message the AI Brain starts on its own, such as the confirmation that an account got
+  # connected: the text, or outside the 24-hour window the approved template given in its place. Owner conversations never
+  # exist in Chatwoot, so it goes straight through the provider, like the assistant's replies. The AI Brain decides which
+  # (see #window).
   def create_message
-    return render json: { error: 'text is required' }, status: :unprocessable_entity if params[:text].blank?
+    error = message_error
+    return render json: { error: error }, status: :unprocessable_entity if error
 
-    return render json: { error: 'The owner has no WhatsApp number registered' }, status: :unprocessable_entity if @owner.phone_number.blank?
-
-    inbox = owner_inbox
-    return render json: { error: 'The account has no AI Brain WhatsApp inbox' }, status: :unprocessable_entity unless inbox
-
-    sent = inbox.channel.provider_service.send_text(@owner.phone_number.delete('+'), params[:text])
+    sent = template.present? ? send_template : @inbox.channel.provider_service.send_text(@owner.phone_number.delete('+'), params[:text])
     return render json: { error: 'WhatsApp did not accept the message' }, status: :bad_gateway unless sent
 
-    render json: { inboxId: inbox.id }
+    render json: { inboxId: @inbox.id }
+  end
+
+  # The inbox create_message would send through for this inboxId, and when the owner last wrote to it: WhatsApp's 24-hour
+  # window counts from it. Their private-channel messages are recorded as they arrive (AiBrain::OwnerMessageJob); a message
+  # from before they joined the private channel is in Chatwoot, from a contact with their number.
+  def window
+    error = inbox_error
+    return render json: { error: error }, status: :unprocessable_entity if error
+
+    recorded = @owner.last_incoming_at_in(@inbox.id)
+    contacts = @owner.account.contacts.where(phone_number: @owner.phone_number)
+    in_chatwoot = Message.incoming.where(inbox_id: @inbox.id, sender_type: 'Contact', sender_id: contacts.select(:id)).maximum(:created_at)
+    render json: { inboxId: @inbox.id, lastIncomingAt: [recorded, in_chatwoot].compact.max&.iso8601 }
   end
 
   private
+
+  def message_error
+    return 'text or template is required' if params[:text].blank? && template.blank?
+    return 'A template needs a name and a language' if template.present? && (template[:name].blank? || template[:language].blank?)
+
+    inbox_error
+  end
+
+  # Also finds the inbox the owner is messaged through.
+  def inbox_error
+    return 'The owner has no WhatsApp number registered' if @owner.phone_number.blank?
+
+    @inbox = owner_inbox
+    'The account has no AI Brain WhatsApp inbox' unless @inbox
+  end
+
+  def template
+    @template ||= params[:template].presence
+  end
+
+  # Built as Whatsapp::SendOnWhatsappService builds a template message, with no Chatwoot message behind it.
+  def send_template
+    name, namespace, language, parameters = Whatsapp::TemplateProcessorService.new(
+      channel: @inbox.channel, template_params: AiBrain::TemplateParams.build(template)
+    ).call
+    @inbox.channel.provider_service.send_template(@owner.phone_number.delete('+'),
+                                                  { name: name, namespace: namespace, lang_code: language, parameters: parameters }, nil)
+  end
 
   # An owner registered for the private channel, or an administrator using the admin assistant from the dashboard, who
   # has no WhatsApp registration and so cannot be messaged.

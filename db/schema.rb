@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_11_16_230000) do
+ActiveRecord::Schema[7.1].define(version: 2026_11_26_030000) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -326,6 +326,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_11_16_230000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "last_inbox_id"
+    t.jsonb "last_incoming_at", default: {}, null: false
     t.index ["account_id"], name: "index_ai_brain_owners_on_account_id"
     t.index ["phone_number"], name: "index_ai_brain_owners_on_phone_number", unique: true
     t.index ["user_id"], name: "index_ai_brain_owners_on_user_id"

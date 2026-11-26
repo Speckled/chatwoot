@@ -47,6 +47,16 @@ describe AiBrain::OwnerMessageJob do
     expect(owner.reload.last_inbox_id).to eq(inbox.id)
   end
 
+  it 'records when the owner wrote to the inbox before the turn, also when the turn fails' do
+    allow(client).to receive(:post).and_return([500, {}])
+
+    expect { job.perform(inbox.id, owner.id, '5551995684103', message.merge('timestamp' => '1764064800')) }
+      .to raise_error(described_class::RetryableError)
+
+    expect(owner.reload.last_incoming_at_in(inbox.id)).to eq(Time.zone.at(1_764_064_800))
+    expect(owner.last_inbox_id).to eq(inbox.id)
+  end
+
   it 'sends only the reply when there are no follow-ups' do
     allow(client).to receive(:post).and_return([200, { 'textToSend' => 'Olá!' }])
 

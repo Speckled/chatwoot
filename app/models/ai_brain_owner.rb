@@ -30,6 +30,19 @@ class AiBrainOwner < ApplicationRecord
     account.account_users.administrator.exists?(user_id: user_id)
   end
 
+  # Records a message the owner wrote to an inbox: alerts go through it while the account has chosen none, and WhatsApp's
+  # 24-hour window counts from it. Written without validations: an owner who stopped being an administrator since the
+  # message arrived still gets the backend's answer.
+  def wrote_to!(inbox_id, at)
+    # rubocop:disable Rails/SkipsModelValidations
+    update_columns(last_inbox_id: inbox_id, last_incoming_at: last_incoming_at.merge(inbox_id.to_s => at.iso8601))
+    # rubocop:enable Rails/SkipsModelValidations
+  end
+
+  def last_incoming_at_in(inbox_id)
+    last_incoming_at[inbox_id.to_s]&.then { |at| Time.zone.parse(at) }
+  end
+
   private
 
   def user_is_administrator

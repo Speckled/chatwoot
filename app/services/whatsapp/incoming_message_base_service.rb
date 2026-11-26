@@ -58,7 +58,7 @@ class Whatsapp::IncomingMessageBaseService
     return false unless owner
 
     AiBrain::OwnerMessageJob.perform_later(inbox.id, owner.id, message[:from], {
-      'id' => message[:id], 'type' => message[:type], 'text' => message.dig(:text, :body),
+      'id' => message[:id], 'timestamp' => message[:timestamp], 'type' => message[:type], 'text' => message.dig(:text, :body),
       'audio_id' => message.dig(:audio, :id), 'mime_type' => message.dig(:audio, :mime_type)
     }.compact)
     true

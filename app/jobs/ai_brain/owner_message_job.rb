@@ -18,9 +18,8 @@ class AiBrain::OwnerMessageJob < ApplicationJob
     @inbox = Inbox.find(inbox_id)
     @from = from
     owner = AiBrainOwner.find(owner_id)
-    # Alerts go through this inbox while the account has chosen none (Apps::OwnersController#owner_inbox). Written without
-    # validations: an owner who stopped being an administrator since the message arrived still gets the backend's answer.
-    owner.update_column(:last_inbox_id, inbox_id) # rubocop:disable Rails/SkipsModelValidations
+    # Before the turn, so a turn that fails still counts: Apps::OwnersController#window reads it.
+    owner.wrote_to!(inbox_id, written_at(message))
 
     body = {
       ownerUserId: owner.user_id,
@@ -43,6 +42,11 @@ class AiBrain::OwnerMessageJob < ApplicationJob
   end
 
   private
+
+  # When WhatsApp says the owner sent it; the window counts from then, however long the job waited.
+  def written_at(message)
+    message['timestamp'].present? ? Time.zone.at(message['timestamp'].to_i) : Time.current
+  end
 
   def reply(text)
     @inbox.channel.provider_service.send_text(@from, text)
