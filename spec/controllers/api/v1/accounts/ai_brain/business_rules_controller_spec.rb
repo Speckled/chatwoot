@@ -74,4 +74,35 @@ RSpec.describe 'AI Brain business rules API', type: :request do
       expect(body['workingHours']).to eq(working_hours.deep_stringify_keys)
     end
   end
+
+  it "passes the assistant's name on and renames the account's bot to the name the backend saved" do
+    bot = AiBrain::BotSender.for(account)
+    other_bot = AiBrain::BotSender.for(create(:account))
+    allow(client).to receive(:put).and_return([200, { 'assistantName' => 'Bia' }])
+
+    put "/api/v1/accounts/#{account.id}/ai_brain/business_rules",
+        headers: admin.create_new_auth_token,
+        params: { businessRules: { businessName: 'Clínica', assistantName: ' Bia ' } },
+        as: :json
+
+    expect(response).to have_http_status(:ok)
+    expect(client).to have_received(:put) do |_path, body|
+      expect(body).to include('assistantName' => ' Bia ')
+    end
+    expect(bot.reload.name).to eq('Bia')
+    expect(other_bot.reload.name).to eq('AI Brain')
+  end
+
+  it 'leaves the bot as it is when the backend refuses the rules' do
+    bot = AiBrain::BotSender.for(account)
+    allow(client).to receive(:put).and_return([400, { 'errors' => { 'assistantName' => ['Too long'] } }])
+
+    put "/api/v1/accounts/#{account.id}/ai_brain/business_rules",
+        headers: admin.create_new_auth_token,
+        params: { businessRules: { businessName: 'Clínica', assistantName: 'B' * 41 } },
+        as: :json
+
+    expect(response).to have_http_status(:bad_request)
+    expect(bot.reload.name).to eq('AI Brain')
+  end
 end

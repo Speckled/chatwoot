@@ -5,7 +5,7 @@ class Api::V1::Accounts::AiBrain::BusinessRulesController < Api::V1::Accounts::A
 
   def update
     rules = params.require(:businessRules).permit(
-      :isAiEnabled, :businessName, :timeZone, :enforceAllowlist, :globalInstructions,
+      :isAiEnabled, :businessName, :assistantName, :timeZone, :enforceAllowlist, :globalInstructions,
       :aiProvider, :modelId, :temperature, :maxOutputTokens, :tone,
       :inactivityNudgeMinutes, :inactivityAutoCloseMinutes, :otherSessionInactivityMinutes, :personCloseRequiredMinutes, :chargeTiming,
       companyRules: [], prohibitedBehaviors: [],
@@ -16,6 +16,9 @@ class Api::V1::Accounts::AiBrain::BusinessRulesController < Api::V1::Accounts::A
       }],
       paymentConfirmationTemplate: [:name, :language, :category, { bodyParameters: [] }]
     )
-    render_upstream(client.put('business-rules', rules.to_h))
+    status, body = client.put('business-rules', rules.to_h)
+    # The bot that posts in this account takes the assistant's name the backend saved.
+    AiBrain::BotSender.rename(Current.account, body['assistantName']) if status == 200 && body['assistantName'].present?
+    render_upstream([status, body])
   end
 end
