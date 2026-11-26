@@ -131,4 +131,30 @@ RSpec.describe 'AI Brain staff API', type: :request do
 
     expect(response).to have_http_status(:unprocessable_entity)
   end
+
+  describe "renaming the account's assistant bot" do
+    it 'renames only the bot of the account in the path' do
+      bot = AiBrain::BotSender.for(account)
+      other_bot = AiBrain::BotSender.for(create(:account))
+
+      put "#{base}/assistant_bot", headers: headers, params: { name: ' Bia ' }, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to eq('botId' => bot.id, 'name' => 'Bia')
+      expect(bot.reload.name).to eq('Bia')
+      expect(other_bot.reload.name).to eq('AI Brain')
+    end
+
+    it 'answers 404 for an unknown account, 422 for a blank name and 401 without the key' do
+      put '/api/v1/apps/chatwoot-main/accounts/0/assistant_bot', headers: headers, params: { name: 'Bia' }, as: :json
+      expect(response).to have_http_status(:not_found)
+
+      put "#{base}/assistant_bot", headers: headers, params: { name: ' ' }, as: :json
+      expect(response).to have_http_status(:unprocessable_entity)
+
+      put "#{base}/assistant_bot", params: { name: 'Bia' }, as: :json
+      expect(response).to have_http_status(:unauthorized)
+      expect(account.agent_bots.pluck(:name)).to eq([])
+    end
+  end
 end

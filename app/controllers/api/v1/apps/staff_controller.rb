@@ -1,5 +1,6 @@
-# What the AI Brain's staff layer changes in an account: staff contacts, flagged before the person ever writes, and the
-# private channel (ai_brain_owners) for administrators who talk to their assistant on WhatsApp.
+# What the AI Brain's staff layer changes in an account: staff contacts, flagged before the person ever writes, the
+# private channel (ai_brain_owners) for administrators who talk to their assistant on WhatsApp, and the name of the bot
+# that posts the assistant's messages.
 class Api::V1::Apps::StaffController < Api::V1::Apps::BaseController
   before_action :fetch_account
 
@@ -54,6 +55,15 @@ class Api::V1::Apps::StaffController < Api::V1::Apps::BaseController
   def destroy_assistant
     @account.ai_brain_owners.where(user_id: params[:user_id]).destroy_all
     head :no_content
+  end
+
+  # Renames the bot that posts the assistant's messages in the account, to the clinic's assistant name.
+  def rename_bot
+    name = params[:name].to_s.strip
+    return render json: { error: 'The name is required' }, status: :unprocessable_entity if name.blank?
+
+    bot = AiBrain::BotSender.rename(@account, name)
+    render json: { botId: bot.id, name: bot.name }
   end
 
   private

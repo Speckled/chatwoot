@@ -61,6 +61,7 @@ Rails.application.routes.draw do
       get 'apps/:app_id/accounts/:account_id/contacts/by_phone', to: 'apps/staff#show_contact'
       put 'apps/:app_id/accounts/:account_id/assistants/:user_id', to: 'apps/staff#upsert_assistant'
       delete 'apps/:app_id/accounts/:account_id/assistants/:user_id', to: 'apps/staff#destroy_assistant'
+      put 'apps/:app_id/accounts/:account_id/assistant_bot', to: 'apps/staff#rename_bot'
 
       # ----------------------------------
       # start of account scoped api routes
