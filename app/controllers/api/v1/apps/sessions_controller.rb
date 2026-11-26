@@ -18,10 +18,12 @@ class Api::V1::Apps::SessionsController < Api::V1::Apps::BaseController
           content: text,
           content_type: closing ? AiBrain::ClosingMessage.content_type(conversation) : :text,
           sender: AiBrain::BotSender.for(conversation.account),
+          # Outside WhatsApp's 24-hour window the AI Brain gives the approved template to send in place of the text.
           additional_attributes: {
             ai_brain_session_id: params[:session_id].to_s,
             ai_brain_outgoing_id: outgoing_id.to_s.presence,
-            ai_brain_outcome: outcome
+            ai_brain_outcome: outcome,
+            template_params: AiBrain::TemplateParams.build(params[:template].presence)
           }.compact
         )
       end

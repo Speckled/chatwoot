@@ -31,6 +31,31 @@ RSpec.describe 'AI Brain staff question answers', type: :request do
       .with(session_id: session_id, outgoing_message_id: outgoing_id, chatwoot_message_id: sent.first.id).twice
   end
 
+  it 'posts the answer carrying the template the AI Brain gives outside the 24-hour window' do
+    allow(client).to receive(:post).and_return([200, { 'questionId' => question_id, 'sessionId' => session_id, 'outgoingMessageId' => outgoing_id,
+                                                       'textToSend' => 'Resposta da clínica: sim.',
+                                                       'template' => { 'name' => 'resposta', 'language' => 'pt_BR', 'bodyParameters' => ['sim'] } }])
+
+    post url, headers: admin.create_new_auth_token, params: { text: 'Sim.' }, as: :json
+
+    sent = conversation.messages.find_by(message_type: :outgoing, private: false)
+    expect(sent.content).to eq('Resposta da clínica: sim.')
+    expect(sent.additional_attributes['template_params'])
+      .to eq('name' => 'resposta', 'language' => 'pt_BR', 'processed_params' => { 'body' => { '1' => 'sim' } })
+  end
+
+  it 'posts nothing and says why when the answer may not be sent' do
+    allow(client).to receive(:post).and_return([200, { 'questionId' => question_id, 'sessionId' => session_id, 'textToSend' => 'Resposta.',
+                                                       'skippedReason' => 'Outside the 24-hour window and no approved template.' }])
+
+    post url, headers: admin.create_new_auth_token, params: { text: 'Sim.' }, as: :json
+
+    expect(response).to have_http_status(:ok)
+    expect(response.parsed_body).to eq('sent' => false, 'reason' => 'Outside the 24-hour window and no approved template.')
+    expect(conversation.messages.where(message_type: :outgoing)).to be_empty
+    expect(client).not_to have_received(:confirm_delivery)
+  end
+
   it 'lists the open questions with the conversation state' do
     allow(client).to receive(:get).and_return([200, [{ 'id' => question_id, 'status' => 'open', 'question' => 'Atende cardiologia?' },
                                                      { 'id' => SecureRandom.uuid, 'status' => 'answered', 'question' => 'Outra' }]])

@@ -53,6 +53,21 @@ RSpec.describe 'AI Brain business rules API', type: :request do
     end
   end
 
+  it 'passes the message templates on' do
+    allow(client).to receive(:put).and_return([200, {}])
+    templates = [{ key: 'message.staff_answer', name: 'resposta', language: 'pt_BR', category: 'UTILITY', bodyParameters: ['{{answer}}'] },
+                 { key: 'owner.message.handoff_alert', name: '', language: '', bodyParameters: [] }]
+
+    put "/api/v1/accounts/#{account.id}/ai_brain/business_rules",
+        headers: admin.create_new_auth_token,
+        params: { businessRules: { businessName: 'Clínica', messageTemplates: templates } },
+        as: :json
+
+    expect(client).to have_received(:put) do |_path, body|
+      expect(body['messageTemplates']).to eq(templates.map(&:deep_stringify_keys))
+    end
+  end
+
   it 'passes the working hours on as weekly intervals and dates with their own hours' do
     allow(client).to receive(:put).and_return([200, {}])
     working_hours = {

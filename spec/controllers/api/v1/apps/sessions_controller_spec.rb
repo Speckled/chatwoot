@@ -48,6 +48,17 @@ RSpec.describe 'AI Brain session outbound API', type: :request do
     expect(survey.due?).to be(true)
   end
 
+  it 'sends the template the AI Brain gives in place of the text, and shows the text in the conversation' do
+    post url, headers: headers, params: { chatwootConversationId: conversation.id, outcome: 'Reply', textToSend: 'Resposta da clínica: sim.',
+                                          template: { name: 'resposta', language: 'pt_BR', category: 'UTILITY', bodyParameters: ['sim'] } },
+              as: :json
+
+    message = conversation.messages.outgoing.last
+    expect(message.content).to eq('Resposta da clínica: sim.')
+    expect(message.additional_attributes['template_params'])
+      .to eq('name' => 'resposta', 'language' => 'pt_BR', 'category' => 'UTILITY', 'processed_params' => { 'body' => { '1' => 'sim' } })
+  end
+
   it 'keeps the survey for a close that says goodbye' do
     close('Até logo!')
 

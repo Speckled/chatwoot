@@ -59,6 +59,8 @@ class Api::V1::Accounts::AiBrain::ConversationsController < Api::V1::Accounts::A
     status, delivery = client.post("staff-questions/#{uuid_param!(:question_id)}/answer",
                                    operatorId: Current.user.id, text: text, saveAsFaq: save_as_faq)
     return render_upstream([status, delivery]) unless status == 200
+    # Outside WhatsApp's 24-hour window with no template, the answer is saved and nothing is posted.
+    return render json: { sent: false, reason: delivery['skippedReason'] } if delivery['skippedReason'].present?
 
     conversation.with_lock { post_staff_answer(conversation, delivery) }
     head :no_content
@@ -91,7 +93,8 @@ class Api::V1::Accounts::AiBrain::ConversationsController < Api::V1::Accounts::A
                                             content: delivery.fetch('textToSend'), sender: AiBrain::BotSender.for(Current.account),
                                             additional_attributes: { ai_brain_staff_question_id: question_id,
                                                                      ai_brain_session_id: delivery['sessionId'],
-                                                                     ai_brain_outgoing_id: delivery['outgoingMessageId'] }.compact)
+                                                                     ai_brain_outgoing_id: delivery['outgoingMessageId'],
+                                                                     template_params: AiBrain::TemplateParams.build(delivery['template']) }.compact)
     return if delivery['outgoingMessageId'].blank?
 
     client.confirm_delivery(session_id: delivery['sessionId'], outgoing_message_id: delivery['outgoingMessageId'], chatwoot_message_id: message.id)

@@ -14,7 +14,8 @@ class Api::V1::Accounts::AiBrain::BusinessRulesController < Api::V1::Accounts::A
         weekly: [:day, { intervals: [:start, :end] }],
         dateOverrides: [:date, { intervals: [:start, :end] }]
       }],
-      paymentConfirmationTemplate: [:name, :language, :category, { bodyParameters: [] }]
+      paymentConfirmationTemplate: [:name, :language, :category, { bodyParameters: [] }],
+      messageTemplates: [:key, :name, :language, :category, { bodyParameters: [] }]
     )
     render_upstream(client.put('business-rules', rules.to_h))
   end
