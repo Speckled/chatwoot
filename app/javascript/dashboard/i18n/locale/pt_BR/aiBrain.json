@@ -459,7 +459,7 @@
       "PLACEHOLDER": "Sua resposta vai para o paciente",
       "SEND": "Responder ao paciente",
       "SAVE_AS_FAQ": "Salvar também como FAQ",
-      "NOT_SENT": "A resposta foi salva, mas não foi enviada: {reason} Responda de novo depois que o paciente escrever, e ela será enviada."
+      "NOT_SENT": "A resposta foi salva, mas não foi enviada: {reason} O assistente a conhece quando o paciente escrever de novo. Para enviá-la depois que o paciente escrever, responda a pergunta de novo pelo assistente administrativo."
     },
     "ADMIN_ASSISTANT": {
       "OPEN": "Assistente",

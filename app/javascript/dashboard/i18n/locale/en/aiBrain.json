@@ -459,7 +459,7 @@
       "PLACEHOLDER": "Your answer goes to the patient",
       "SEND": "Answer the patient",
       "SAVE_AS_FAQ": "Also save as an FAQ",
-      "NOT_SENT": "The answer is saved but was not sent: {reason} Answer again after the patient writes, and it goes out."
+      "NOT_SENT": "The answer is saved but was not sent: {reason} The assistant knows it when the patient writes again. To send it after the patient writes, answer the question again through the admin assistant."
     },
     "ADMIN_ASSISTANT": {
       "OPEN": "Assistant",
