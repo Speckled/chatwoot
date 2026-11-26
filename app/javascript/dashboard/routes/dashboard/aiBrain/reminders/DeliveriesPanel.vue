@@ -18,6 +18,7 @@ const loaded = ref(false);
 
 const STATUS_CLASSES = {
   [DELIVERY_STATUS.SENT]: 'text-n-teal-11',
+  [DELIVERY_STATUS.DELIVERED]: 'text-n-teal-11',
   [DELIVERY_STATUS.FAILED]: 'text-n-ruby-11',
   [DELIVERY_STATUS.SKIPPED]: 'text-n-amber-11',
 };

@@ -346,7 +346,8 @@
         "1": "Enviando",
         "2": "Enviado",
         "3": "Falhou",
-        "4": "Pulado"
+        "4": "Pulado",
+        "5": "Entregue"
       },
       "SENT_TO": "Para",
       "DETAILS": "Detalhes",
